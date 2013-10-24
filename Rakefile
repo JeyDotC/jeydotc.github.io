@@ -40,6 +40,10 @@ module JB
   end #Path
 end #JB
 
+task :default do
+# Do nothing
+end
+
 # Usage: rake post title="A Title" [date="2012-02-09"] [tags=[tag1,tag2]] [category="category"]
 desc "Begin a new post in #{CONFIG['posts']}"
 task :post do
