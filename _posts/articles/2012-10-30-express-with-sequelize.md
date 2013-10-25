@@ -6,9 +6,6 @@ tags : [expressjs, sequelizejs, nodejs, javascript]
 ---
 {% include JB/setup %}
 
-EXPRESS WITH SEQUELIZE
-======================
-
 Well, as [this](http://stackoverflow.com/questions/12487416/example-express-app-that-uses-sequelize)
 guy said is impossible to put your models in different files due to circular references 
 and multiple sequelize instantiation(?). So, creating a single file is mandatory in order to create 
