@@ -1,0 +1,11 @@
+name: Fabrício Ronchi - Blog
+markdown: redcarpet
+pygments: true
+name: Fabrício Ronchi
+url: http://jeydotc.github.io/
+domain: jeydotc.github.io
+author :
+  name : Fabrício Ronchi
+  email : fabricioronchii@gmail.com
+  github : https://github.com/FabricioRonchi
+  twitter : https://twitter.com/FRonchii

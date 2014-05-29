@@ -1,0 +1,28 @@
+---
+layout: default
+title: Home
+imagem: /img/fundoInicio.jpg
+---
+<div id="my-container">
+  <h1>Hello, Fabricio</h1>
+  <p>It's been dificult for me to create a Jekill site, so I decided to use one as the base to create my own.</p>
+  <p>As soon as I'm done I'll:</p>
+  <ul>
+   <li>Remove any posts or resources attributed to you (except for the necessary for my site to run)</li>
+   <li>Modify the contents that were not deleted</li>
+   <li>Give you some credit for helping me to create build my blog :)</li>
+  </ul>
+  <div class="posts">
+    <section class="my-container content">
+      <ul class="listing">
+        {% for post in site.posts %}
+          <li class="my-li">
+            <span>{{ post.date | date_to_string }}</span> <a href="{{ post.url }}">{{ post.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+<br />
+<br />
