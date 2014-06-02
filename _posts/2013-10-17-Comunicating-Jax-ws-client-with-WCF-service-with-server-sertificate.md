@@ -14,7 +14,7 @@ This article is about comunicating a jax-ws client with a WCF service using cert
 
 This is the `<system.serviceModel>` part of the *web.config* file for the WCF service I was trying to comunicate:
 
-```xml
+~~~xml
 ...
 <system.serviceModel>
     <services>
@@ -53,7 +53,7 @@ This is the `<system.serviceModel>` part of the *web.config* file for the WCF se
         </serviceBehaviors>
     </behaviors>
 </system.serviceModel>
-```
+~~~
 **NOTE:** In my case I used netbeans as my IDE for the client, but it is not required, if anyone can reproduce these steps in eclipse and have a post about it, I'd like to add a link to that post.
 
 ## The current situation
@@ -70,9 +70,9 @@ Once certificates come in play, a myriad of errors pops up in front of you, one 
 
 The first thing is to have your certificates in your project's keystore, there are several ways to do this, that depends on your certificates set. In this case I had a CA signed private certificate (.pfx) from which one can export a public certificate (.cer) the latter is the one we're interested in, to import it one can use this command:
 
-```
+~~~
 keytool -keystore "path/to/mykeystore.jks" -importcert -alias some_alias -trustcacerts -file "path/to/myCertificate.cer" -keypass yourcertificate_password -storepass mykeystore_password
-```
+~~~
 
 Once you have your keystore ready, you will need to add a reference to it in your webservice client. Netbeans users may refer to [this tutorial](https://metro.java.net/nonav/1.2/guide/Configuring_Keystores_and_Truststores.html#Configuring_the_Keystore_and_Truststore).
 
@@ -96,9 +96,9 @@ The answer were found [here](http://stackoverflow.com/questions/17207491/after-u
 
 All I had to do was to download this library, add it to the project and add this line of code before calling the service:
 
-```java
+~~~java
 Security.addProvider(new BouncyCastleProvider());
-```
+~~~
 
 ### Step 4 (hopely the last): Install the "Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files"
 

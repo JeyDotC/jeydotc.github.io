@@ -7,17 +7,17 @@ categories: Blog
 
 In ASP, there is a built-in validation system, it is flexible enough to provide a simple interface to create your own validators:
 
-```asp
+~~~asp
 <asp:CustomValidator runat="server" 
                     ControlToValidate="MyValidatedControlID"
                     OnServerValidate="MyCodeBehindValidationEventHandlerName"
                     ClientValidationFunction="MyJavascriptValidationFunctionName"
                     ErrorMessage="You are wrong!" />
-```
+~~~
 
 It is simple, is cool and allows you o do both, client and server side validation. But what if you need to do an AJAX validation? The obvious answer to this would be:
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     $.ajax({
         url: ...
@@ -26,12 +26,12 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 Cool! but there is a problem, AJAX calls are asynchronous, thus, the postback will start before your validation is done :(
 
 "But Jey, it can be easily solved by just making the AJAX request synchronous"
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     $.ajax({
         url: ...
@@ -41,7 +41,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 Well, indeed it does the thing, but it has a disadvantage, it locks the entire page until the validation is done. This might not be so bad, as long as the request is fast enough to keep the user unaware of it; the problem comes when the request is slow, then, your validation becomes as annoying as an alert.
 
 What do we do then? Well, after some experimentation and a lot of StackOverflow research I came to a solution which involves these steps:
@@ -60,17 +60,17 @@ Looks like a lot of things to do, but it is what it takes if we want some kind o
 
 The first thing we want is to stop the callback process in order to do our slow job without being interrupted, so, as soon as your validation function gets called, say *Invalid!*.
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     args.IsValid = false;
 }
-```
+~~~
 
 ### Show a *"processing..."* message instead of your *"invalid"* message.
 
 Ok, that stopped the postback, but now we are telling the user that the field is invalid without actually validating it. To solve that, all we need to do is to alter the validator control(which happens to be `span` element with extra attributes) to show a more accurate message, but keeping a copy of the original values to restore them later.
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     args.IsValid = false;
     
@@ -86,7 +86,7 @@ function MyJavascriptValidationFunctionName(sender, args){
     //Change the error message for a friendlier one.
     $sender.text("Checking...").css({ color: "black" });
 }
-```
+~~~
 
 Note that we are taking the properties like `sender.clientvalidationfunction` or `sender.controltovalidate` those are  properties added to the `span` that represents our validator.
 
@@ -94,7 +94,7 @@ Note that we are taking the properties like `sender.clientvalidationfunction` or
 
 Now we start our slow process. As AJAX calls are usually the slowest thing in a web page, we will take that for our experiment.
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     args.IsValid = false;
     
@@ -118,7 +118,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 ### As soon as your request ends, replace the ClientValidationFunction with a dummy function.
 
@@ -126,7 +126,7 @@ Well, after a long journey, our message is responded, but now, we need to notify
 
 To avoid triggering the AJAX request but notify the validation system that the control has just been validated, we need to replace the original validation function with one that just says "yes, the control is valid" or "no, try again".
 
-```javascript
+~~~javascript
 //Create our respond functions...
 var Respond_True = function (sender, args) { args.IsValid = true; };
 var Respond_False = function (sender, args) { args.IsValid = false; };
@@ -142,7 +142,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 With this we ensure that if validation is triggered again (e.g. the submit button is clicked) we will have an immediate answer.
 
@@ -150,7 +150,7 @@ With this we ensure that if validation is triggered again (e.g. the submit butto
 
 In a previous step, we modified the original message to tell the user that we were in a validation process, but now we need the original one to the case when the validation gets triggered again.
 
-```javascript
+~~~javascript
 //Create our respond functions...
 var Respond_True = function (sender, args) { args.IsValid = true; };
 var Respond_False = function (sender, args) { args.IsValid = false; };
@@ -169,7 +169,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 Now if validation for this field failed and the submit button gets clicked, the right error message will appear immidiately.
 
 ### Update the validation state.
@@ -178,7 +178,7 @@ But we don't want the user to wait until he triggers the validation event again,
 
 To accomplish that, we just call the validation but only for our control.
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     ...content ommited...
     //Start the AJAX call..
@@ -197,7 +197,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 With that, we feed the user with an appropiate message and set the correct status for our control.
 
@@ -207,7 +207,7 @@ Earlier in this post, we stored the original validation function name to set it 
 
 To do it, we listen to the "change" event.
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     ...content ommited...
     //Start the AJAX call..
@@ -232,7 +232,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 Note that our listener does three things:
 
@@ -244,7 +244,7 @@ Note that our listener does three things:
 
 Here is the complete function that validates with an ajax call:
 
-```javascript
+~~~javascript
 //Create our respond functions...
 var Respond_True = function (sender, args) { args.IsValid = true; };
 var Respond_False = function (sender, args) { args.IsValid = false; };
@@ -290,13 +290,13 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 ### Divide and conquer!
 
 Too much work for a single function, isn't it? Fortunately we are programmers and know how to encapsulate repetitive behavior, so, lets reorganize code into something reusable :)
 
-```javascript
+~~~javascript
 //Create our respond functions...
 var Respond_True = function (sender, args) { args.IsValid = true; };
 var Respond_False = function (sender, args) { args.IsValid = false; };
@@ -346,11 +346,11 @@ function AjaxValidator(sender, args, ajaxSettings){
         }
     }));
 }
-```
+~~~
 
 Having this, validating controls with AJAX becomes as simple as this:
 
-```javascript
+~~~javascript
 function MyJavascriptValidationFunctionName(sender, args){
     AjaxValidator(sender, args, {
         url: ...,
@@ -361,7 +361,7 @@ function MyJavascriptValidationFunctionName(sender, args){
         }
     });
 }
-```
+~~~
 
 # Conclusions
 

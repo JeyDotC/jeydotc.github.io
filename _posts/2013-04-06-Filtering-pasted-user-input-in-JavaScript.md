@@ -20,7 +20,7 @@ post. It made clearer something I saw in various answers from stackOverflow: You
 listen to the paste event before and after the text is pasted and thus you have the old
 and the new versions of the text. 
 
-```javascript
+~~~javascript
 
 $.fn.pasteEvents = function( delay ) {
     if (delay == undefined) delay = 20;
@@ -43,7 +43,7 @@ $(selector).bind("prepaste", function (e) {
 	var newValue = e.target.value;
 }).pasteEvents();
 
-```
+~~~
 
 So, obviously, as we are speaking about a paste process the difference between the two texts
 should be the pasted text! but then we remember that there is no built in diff function in JavaScript
@@ -51,7 +51,7 @@ and... man! we are too lazy to make it, so, searching here and there I found [th
 neat library from google that does exactly what we need, diff and patch (among other things). That way
 we can get our precious pasted text:
 
-```javascript
+~~~javascript
 //Creating the diff object.
 var diff = new diff_match_patch();
 //Get the differences
@@ -66,12 +66,12 @@ $.each(diffs, function (k, v) {
 });
 // Apply changes...
 var newText = diff.patch_apply(diff.patch_make(diffs), oldValue)[0];
-```
+~~~
 
 Now that we can get the pasted text, modify it and apply the changes to the final value, all we need is
 to wrap it all in a jQuery plugin:
 
-```javascript
+~~~javascript
 
 //From http://www.mattbenton.net/2012/01/jquery-plugin-paste-events/
 $.fn.pasteEvents = function (delay) {
@@ -117,17 +117,17 @@ $.fn.pasteFilter = function (paste_modifier) {
         }).pasteEvents();
     });
 };
-```
+~~~
 
 Now we have a *really* simple way of filtering the just pasted text. Here is the plugin usage:
 
-```javascript
+~~~javascript
 $(selector).pasteFilter(function (text) {
     // Do whatever cool thing with your string
 	// and return the modified version...
     return text;
 });
-```
+~~~
 
 Here is a [jsFiddle](http://jsfiddle.net/JeyDotC/7SVbN/3/) to prove the idea and remember that it depends
 on [google-diff-patch-match](https://code.google.com/p/google-diff-match-patch/)

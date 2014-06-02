@@ -9,7 +9,7 @@ Well, for many developers <del>too lazy</del> with no time to climb the steep
 drupal's learning curve the solution is to simply implement a hook_menu and do 
 the job with plain old PHP.
 
-```php
+~~~php
 function mymodule_menu(){
     $routing["my/route1"] = array(
         "page callback" => "mymodule_do_something",
@@ -26,11 +26,11 @@ function mymodule_do_something(){
         return $something;
     }
 }
-```
+~~~
 
 But one usually takes advantage of many drupal functionalities, like the 
-```node_load/save/delete, drupal_add_js/css``` functions or the form api with
-```drupal_render```. In this particular case, one desires to create an autocomplete
+~~~node_load/save/delete, drupal_add_js/css~~~ functions or the form api with
+~~~drupal_render~~~. In this particular case, one desires to create an autocomplete
 control with a lot of complex capabilities (and the jquery.ui.autocomplete 
 doesn't work for some unknown reason), but there is a small problem... the 
 drupal's autocomplete library has some faults:
@@ -43,7 +43,7 @@ but, again, autocomplete.js doesn't emit any event.
 Ok, lets listen to the onChange event in my field, that will solve all my problems!....
 sorry bro, but it's worthless because the onChange event occurs when the user types
 something in the field and then it looses focus. That doesn't happen with
-autocomplete.js because it does this: ```field.value = newvalue``` doing this doesn't ever
+autocomplete.js because it does this: ~~~field.value = newvalue~~~ doing this doesn't ever
 trigger such event, so, this solution won't work.
 
 The only solution I could think is to simply override the functions that loads the search results
@@ -72,7 +72,7 @@ creating the list of possible options. It receives a JSON object where keys are
 considered the values to be put in the field and the values are the text to be
 displayed in the options menu.
 
-```javascript
+~~~javascript
 //First of all, have a copy to the parent method.
 var parentFound = Drupal.jsAC.prototype.found;
 //Then override the prototype.
@@ -99,13 +99,13 @@ Drupal.jsAC.prototype.found = function (matches) {
         this.dataEntity = matches[this.autocompleteValue];
     });
 };
-```
+~~~
 
 And now we can have complex data in our options, but how to retrieve it? by listening
 the onChangeEvent of our field. But to do so, we need to trigger such event from the
 field by overriding the Drupal.jsAC.prototype.hidePopup method:
 
-```javascript
+~~~javascript
 //As before, we need the original function.
 var parentHidePopup = Drupal.jsAC.prototype.hidePopup;
 Drupal.jsAC.prototype.hidePopup = function (keycode) {
@@ -128,11 +128,11 @@ Drupal.jsAC.prototype.hidePopup = function (keycode) {
         $(this.input).trigger(event);
     }
 };
-```
+~~~
 
 And finally we can use a listener for our brand new triggered event:
 
-```javascript
+~~~javascript
 $(myFieldSelector).live("change", function (e) {
     //Now our entity is part of the event.
     var entity = e.entity;
@@ -144,7 +144,7 @@ $(myFieldSelector).live("change", function (e) {
         console.log(entity);
     }
 })
-```
+~~~
 
 And we now have a cool autocomplete functionality added to the drupal's version.
 All we have to do is to put it into a js file and load such file with our module.
@@ -153,7 +153,7 @@ Here is the full thing:
 
 drupal.enhanced_autocomplete.js
 
-```javascript
+~~~javascript
 jQuery(function($){
     if(Drupal.jsAC){
         var parentFound = Drupal.jsAC.prototype.found;
@@ -189,13 +189,13 @@ jQuery(function($){
         };
     }
 });
-```
+~~~
 
 And at our module we can use the autocomplete as usual:
 
 my.module:
 
-```php
+~~~php
 <?php
 function my_menu(){
     $routing["my/page_with_autocomplete"] = array(
@@ -233,12 +233,12 @@ function my_search_nodes($search=""){
 }
 
 ?>
-```
+~~~
 And finally we can manage our search results:
 
 my.custom_script.js
 
-```javascript
+~~~javascript
 $(".my-autocomplete").live("change", function (e) {
     var entity = e.entity;
     if(entity != null && typeof entity == "object"){
@@ -246,4 +246,4 @@ $(".my-autocomplete").live("change", function (e) {
         //Setting a value on a hidden or dependant field.
     }
 })
-```
+~~~
