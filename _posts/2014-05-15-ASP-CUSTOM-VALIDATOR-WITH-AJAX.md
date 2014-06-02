@@ -54,7 +54,7 @@ What do we do then? Well, after some experimentation and a lot of StackOverflow 
 5. Update the validation state.
 6. Reset the original validation function but only when the validated control changes.
 
-Looks like a lot of things to do (°_°) but it is what it takes if we want some kind of generic solution for this problem. Ok, lets do it.
+Looks like a lot of things to do, but it is what it takes if we want some kind of generic solution for this problem. Ok, lets do it.
 
 ### Say *"Invalid!"* immediately.
 
@@ -366,5 +366,3 @@ function MyJavascriptValidationFunctionName(sender, args){
 # Conclusions
 
 This is just an experiment, there are lots of things to polish, but I think it is a good starting point for a full fledged extension for client-side ASP validation.
-
-> Written with [StackEdit](https://stackedit.io/).
