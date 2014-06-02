@@ -17,7 +17,7 @@ Obviusly you must have this module as a [singleton](http://simplapi.wordpress.co
 The idea is to have something like this for your model files:
 
 Hello.js:
-~~~javascript
+```javascript
 //Getting the orm instance
 var orm = require("path/to/lib/model")
 , Seq = orm.Seq();
@@ -35,7 +35,7 @@ module.exports = {
 		freezeTableName: true
 	}
 }
-~~~
+```
 
 Note that there is no sequelize model initialization, you just give the data necesary to initialize 
 the model. That `orm` object is indeed our singleton and, in this case, just returns the `Sequelize` 
@@ -45,7 +45,7 @@ At our app.js file we just create and setup our orm singleton:
 
 app.js:
 
-~~~javascript
+```javascript
 ...
 //Setting up our singleton...
 require("path/to/lib/model").setup('./app/models', "db_name", "user", "pass", {
@@ -53,13 +53,13 @@ require("path/to/lib/model").setup('./app/models', "db_name", "user", "pass", {
 	....
 });
 ...
-~~~
+```
 
 Then you can use your model in your controller files:
 
 Index.js:
 
-~~~javascript
+```javascript
 //Getting our singleton
 var orm = require("path/to/lib/model");
 
@@ -73,13 +73,13 @@ exports.hello = function (request, response){
 		});
 	});
 }
-~~~
+```
 	
 And finally our singleton class which holds all the models:
 
 path/to/lib/model.js:
 
-~~~javascript
+```javascript
 var filesystem = require('fs');
 var models = {};
 var relationships = {};
@@ -147,7 +147,7 @@ singleton.getInstance = function(){
 }
 
 module.exports = singleton.getInstance();
-~~~
+```
 	
 This Module has a very simple interface, it has just three methods:
 

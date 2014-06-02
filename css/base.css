@@ -44,18 +44,13 @@ input{
 li {
     padding: 0;
     list-style-type: square;
-    font-size: 20px;
+    font-size: 15px;
     margin-left: 0;
     line-height: 160%;
 }
 
 .my-li {
     border-bottom: 1px solid #e5e5e5
-}
-
-::selection {
-    background-color: #2B2B2B;
-    color: #eee;
 }
 
 .clear {
@@ -128,12 +123,15 @@ li {
     font-size: 14px;
 }
 
+h1, h2, h3, h4, h5{
+    margin: 1em 0 15px;
+    padding: 0 30px;
+}
+
 h1 {
     font-family: 'News Cycle', sans-serif;
     font-weight: bold;
     font-size: 34px;
-    margin: 40px -30px 30px -30px;
-    padding: 15px 30px 30px 23px;
     border-left: 7px solid #eee;
     font-weight: 400;
     color: #444;
@@ -146,8 +144,6 @@ h1 em, h1 i {
 }
 
 h2 {
-    margin: 50px -30px 20px -30px;
-    padding: 10px 30px 10px 25px;
     border-left: 5px solid #eee;
     font-family: 'News Cycle', sans-serif;
     font-weight: bold;
@@ -162,24 +158,15 @@ h2 em, h2 i {
 }
 
 h3 {
-    margin: 50px -30px 20px -27px;
-    padding: 15px 30px;
     font-family: 'News Cycle', sans-serif;
     font-weight: bold;
     border-left: 3px solid #eee;
-    font-size: 20px;
-    font-weight: 400;
     color: #444;
 }
 
-.content i, .content em {
+.content i {
     font-family: 'News Cycle', sans-serif;
     font-style: normal;
-}
-
-.content b, .content strong {
-    font-family: 'News Cycle', sans-serif;
-    font-weight: normal;
 }
 
 .content em b {
@@ -189,9 +176,9 @@ h3 {
 }
 
 .content p {
-    font-size: 20px;
+    font-size: 15px;
     line-height: 160%;
-    margin: 25px 0;
+    margin: 15px 0;
 }
 
 .content pre {
@@ -201,9 +188,8 @@ h3 {
 
 .content code {
     color: #444;
-    background-color: #e2edf3;
     border-radius: 3px;
-    font-size: 16px;
+    font-size: 12px;
     padding: 2px 3px;
 }
 
@@ -225,14 +211,11 @@ h3 {
 }
 
 #menu-contact ul li { display: inline; }
-.content .when + p:first-of-type {
-    display: inline;
-}
 
 .content blockquote p {
     color: #000;
     font-style: italic;
-    font-size: 16px;
+    font-size: 12px;
 }
 
 pre{
@@ -265,8 +248,6 @@ pre{
     font-size: 14px;
     text-transform: uppercase;
     color: #999;
-    margin-top: -60px;
-    margin-bottom: 40px;
 }
 
 .content hr{
@@ -306,7 +287,7 @@ pre{
 }
 
 .listing {
-    margin: 25px 0;
+    margin: 15px 0;
     padding: 0;
 }
 
@@ -387,7 +368,7 @@ iframe{
 }
 
 .post pre {
-    background-color: #f3f3f3;;  
+    /*background-color: #f3f3f3;;*/  
 }
 
 .post ul, .post ol {
@@ -395,7 +376,6 @@ iframe{
 }
 
 .post code {
-    background-color: #f3f3f3;;
     padding: 0 .2em;
 }
 

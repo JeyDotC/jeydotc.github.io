@@ -1,6 +1,6 @@
 name: JeyDotC - Blog
-#markdown: redcarpet
-markdown: kramdown 
+markdown: redcarpet
+#markdown: kramdown 
 pygments: true
 name: JeyDotC
 url: http://jeydotc.github.io/

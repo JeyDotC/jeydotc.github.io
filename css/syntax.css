@@ -1,8 +1,16 @@
-.highlight{background:#f3f3f3;padding:10px 20px;overflow-x:scroll}
+.highlight{
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    font-size: 13px;
+    line-height: 19px;
+    overflow: auto;
+    padding: 6px 10px;
+    border-radius: 3px;
+    padding:10px 20px;
+}
 .meta{background:#1d1f21;color:#f3f3f3;padding:4px}
 .comments{margin-top:60px}
 .active{color:#000!important}
-.highlight{	background:#f3f3f3}
 .highlight .c{color:#998;font-style:italic}
 .highlight .err{color:#a61717;background-color:#e3d2d2}
 .highlight .k{font-weight:700}
