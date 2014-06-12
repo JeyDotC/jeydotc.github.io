@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    font: 13px Helvetica, arial, freesans, clean, sans-serif;
+    font: 15px Helvetica, arial, freesans, clean, sans-serif;
 }
 
 .galeria{
@@ -199,7 +199,7 @@ h3 {
 }
 
 .contact-icon{
-    font-size: 7em;
+    font-size: 4em;
     margin-right: -10px;
     margin-left: -10px;
 }
@@ -305,6 +305,7 @@ pre{
 
 .my-container{
     margin-top: 25px;
+    margin-bottom: 25px;
     max-width: 730px;
     padding-right: 15px;
     padding-left: 15px;
