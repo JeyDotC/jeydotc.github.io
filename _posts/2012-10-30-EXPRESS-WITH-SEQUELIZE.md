@@ -17,6 +17,7 @@ Obviusly you must have this module as a [singleton](http://simplapi.wordpress.co
 The idea is to have something like this for your model files:
 
 Hello.js:
+
 ```javascript
 //Getting the orm instance
 var orm = require("path/to/lib/model")
