@@ -11,13 +11,13 @@ image: /img/blog-background.png
             </div>
             {{ content }}		
         </section>
-        <nav>
+        <nav class="posts-navigation">
             {% if page.next %}
-                <a href="{{ page.next.url }}">Next post</a> 
+                <a href="{{ page.next.url }}" class="next-post-link">Next post</a> 
             {% endif %}
             
             {% if page.previous %}
-                <a href="{{ page.previous.url }}">Previous post</a>
+                <a href="{{ page.previous.url }}" class="previous-post-link">Previous post</a>
             {% endif %}
         </nav>
     </div>	
