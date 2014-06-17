@@ -12,8 +12,13 @@ image: /img/blog-background.png
             {{ content }}		
         </section>
         <nav>
-            <a href="{{ page.next.url }}">Next</a> | 
-            <a href="{{ page.previous.url }}">Previous</a>
+            {% if page.next %}
+                <a href="{{ page.next.url }}">Next post</a> 
+            {% endif %}
+            
+            {% if page.previous %}
+                <a href="{{ page.previous.url }}">Previous post</a>
+            {% endif %}
         </nav>
     </div>	
     {% include disqus.html %}
