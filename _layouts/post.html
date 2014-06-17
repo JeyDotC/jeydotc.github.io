@@ -11,6 +11,10 @@ image: /img/blog-background.png
             </div>
             {{ content }}		
         </section>
+        <nav>
+            <a href="{{ page.next.url }}">Next</a> | 
+            <a href="{{ page.previous.url }}">Previous</a>
+        </nav>
     </div>	
     {% include disqus.html %}
 </div>
