@@ -454,3 +454,18 @@ iframe{
     margin-left: 10%;
     margin-right: 10%;
 }
+
+.posts-navigation {
+    overflow: hidden;
+    margin-bottom: 1.2em;
+}
+
+.posts-navigation .next-post-link {
+    display: block;
+    float: left;
+}
+
+.posts-navigation .previous-post-link {
+    display: block;
+    float: right;
+}
