@@ -53,6 +53,20 @@ li {
     border-bottom: 1px solid #e5e5e5
 }
 
+.my-li .excerpt{
+    font-size: 0.9em;
+    color: #888;
+}
+
+.my-li .read-more {
+    overflow: hidden;
+}
+
+.my-li .read-more a {
+    float: right;
+    font-size: 0.9em;
+}
+
 .clear {
     clear: both;
 }
@@ -114,6 +128,8 @@ li {
     background-size: cover;
     height: 200px;
     box-shadow: inset 0 0 15px rgba(0,0,0,.5);
+    background-position-y: -200px;
+    background-repeat: no-repeat;
 }
 
 .aside {
