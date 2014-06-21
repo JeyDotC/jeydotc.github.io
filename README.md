@@ -1,4 +1,4 @@
 Blog
 ====
 
-Blog Pessoal.
+My personal blog.

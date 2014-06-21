@@ -1,5 +1,6 @@
 name: JeyDotC - Blog
-description: Telling everyday stories.
+description: Telling programming adventures :p
+keywords: PHP, JavaScript, C#
 markdown: redcarpet
 pygments: true
 name: JeyDotC
