@@ -11,6 +11,7 @@ image: /img/blog-background.jpg
             </div>
             {{ content }}		
         </section>
+        <div class="addthis_sharing_toolbox"></div>
         <nav class="posts-navigation">
             {% if page.next %}
                 <a href="{{ page.next.url }}" class="next-post-link">Next post</a> 
@@ -21,5 +22,6 @@ image: /img/blog-background.jpg
             {% endif %}
         </nav>
     </div>	
+    {% include addThis.html %}
     {% include disqus.html %}
 </div>

@@ -6,8 +6,12 @@ pygments: true
 name: JeyDotC
 url: http://jeydotc.github.io/
 domain: jeydotc.github.io
+
 author :
   name : Jeysson Guevara
   email : jeydotc@gmail.com
   github : https://github.com/JeyDotC
   twitter : https://twitter.com/JeyDotC
+  
+addThis:
+    pubid: ra-53a9b93d3f9d058a
