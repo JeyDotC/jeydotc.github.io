@@ -1,9 +1,10 @@
 name: JeyDotC - Blog
 description: Telling programming adventures :p
 keywords: PHP, JavaScript, C#
+thumbnail: http://jeydotc.github.io/img/home-background.jpg
+
 markdown: redcarpet
 pygments: true
-name: JeyDotC
 url: http://jeydotc.github.io/
 domain: jeydotc.github.io
 
