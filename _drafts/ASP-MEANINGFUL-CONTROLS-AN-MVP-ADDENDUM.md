@@ -318,7 +318,29 @@ Not as clean as it used to be, now we have to deal with six controls just for a 
 
 Further more, there is another issue I didn't state in the previous example: We are dealing with data conversion; the `WeightTextbox` control is a textbox and thus it can only give us text. Conversion is easy and type validation can be enforced with the `asp:CompareValidator`, but multiply that for each floating point, integer or whatever numeric field we can have in our application.
 
-Hundreds of times writing the same thing, the same Label attached to that textbox whith its companion comparison and/or required validator. Writing 
+Hundreds of times writing the same thing: the same Label attached to that textbox whith its companion comparison and/or required validator. Doing the same type conversions over and over again.
+
+### Meaningful controls
+
+There must be something we can do. Well, solving this issue is as simple as follows.
+
+1. Create user controls for common data types.
+2. Create user controls for *Value Objects* or for simple types which need several controls to build their value.
+3. Give them a common interface.
+
+We will detail each step now:
+
+#### Create user controls for common data types.
+
+It is almost sure that your project will have fields of common types like strings, numbers, dates, etc. So, the first thing to do is to create user controls that have just a label, a 
+
+All those with their corresponding labels and with a public property to set it. Also give'em a comparison validator to ensure the data type when needed.
+
+
+
+#### Give them a common interface.
+
+For these kinds of control, there are just three usual operations, "Tell me if you have anything", "Give me your data" and "Get clean". One always do the same things, but the means to get there vary from one control to another.
 
 ### Side note
 
