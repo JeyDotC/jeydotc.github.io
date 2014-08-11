@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  "ASP MEANINGFUL CONTROLS, AN MVP ADDENDUM"
+title:  "ASP STRONGLY TYPED CONTROLS, AN MVP ADDENDUM"
 date:   2012-10-30
-categories: Blog, ASP
+categories: Blog, ASP, MVP
 ---
 
 If you are an ASP developer and hate messy code, it is very likely that you've heard about the [Model-View-Presenter pattern](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter). As soon as one starts to play around with it, our mess-prone code starts to become more organized and our code-behind gets thinner, but we still have to deal with hundreds of user controls and code that does many repetitive tasks. This post is about a simple practice that may alleviate the remaining repetitive stuff left when applying the MVP pattern.
@@ -248,7 +248,7 @@ The new UI would look like this:
 ...
 ```
 
-The form now has a `TreatmentDropDown`, `FirstNameTextbox`, `MiddleNameTextbox`, `LastNameTextbox` and `SecondLastNameTextbox`, all those represent treatment, first name, middle name, last name and a second last name, those together represent the fullname (yup, where I live we have all those).
+The form now has a `TreatmentDropDown`, `FirstNameTextbox`, `MiddleNameTextbox`, `LastNameTextbox` and `SecondLastNameTextbox`, all those represent treatment, first name, middle name, last name and a second last name, those together represent the fullname (yup, where I come from we have all those).
 
 And now our code behind looks like this:
 
@@ -320,9 +320,9 @@ Further more, there is another issue I didn't state in the previous example: We 
 
 Hundreds of times writing the same thing: the same Label attached to that textbox whith its companion comparison and/or required validator. Doing the same type conversions over and over again.
 
-### Meaningful controls
+### Strongly typed controls
 
-There must be something we can do. Well, solving this issue is as simple as follows.
+There must be something we can do. Well, solving this issue is as simple as doing this.
 
 1. Create user controls for common data types.
 2. Create user controls for *Value Objects* or for simple types which need several controls to build their value.
@@ -332,17 +332,25 @@ We will detail each step now:
 
 #### Create user controls for common data types.
 
-It is almost sure that your project will have fields of common types like strings, numbers, dates, etc. So, the first thing to do is to create user controls that have just a label, a 
+It is almost sure that your project will have fields of common types like strings, numbers, dates, etc. So, the first thing to do is to create user controls that have just a label, a textbox and a comparison validator to ensure the data type when needed.
 
-All those with their corresponding labels and with a public property to set it. Also give'em a comparison validator to ensure the data type when needed.
+#### Create user controls for *Value Objects* or for simple types which need several controls to build their value.
 
-
+Either if our fullname field is a value object or a string made up of several values, it is usual to see common sets of controls that end repeated in several pages. For those is necessary to create a user control that renders the necessary controls, process the data that comes from them and then, return a value to be used.
 
 #### Give them a common interface.
 
-For these kinds of control, there are just three usual operations, "Tell me if you have anything", "Give me your data" and "Get clean". One always do the same things, but the means to get there vary from one control to another.
+To this point you may have realized that there are just three usual operations: "Tell me if you have anything", "Give me your data" and "Get clean". they almost allways do the same things, so it is natural to create an interface for all those, so they are not just recycleable, but also composable into structures that make sense, like, say, a collection of filters for which certain operations can be applied (more on this in the final example). 
+
+### Improving extensibility: allowing to add validators
+
+
+
+### A final example, a filters panel
+
+
 
 ### Side note
 
-Any developer with some level of taste for good coding could come out with something similar or better than what I've exposed here, is kind of just common sense, my intention here is to present a simple suggestion on how to organize your user controls in a way that can improve a project's speed of development and GUI's uniformity and that is easy to teach to others.
+**Change this** ---> Any developer with some level of taste for good coding could come out with something similar or better than what I've exposed here, is kind of just common sense, my intention here is to present a simple suggestion on how to organize your user controls in a way that can improve a project's speed of development and GUI's uniformity and that is easy to teach to others.
 
