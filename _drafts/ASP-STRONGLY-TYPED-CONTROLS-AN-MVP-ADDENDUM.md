@@ -334,6 +334,8 @@ We will detail each step now:
 
 It is almost sure that your project will have fields of common types like strings, numbers, dates, etc. So, the first thing to do is to create user controls that have just a label, a textbox and a comparison validator to ensure the data type when needed.
 
+Then, the first thing to do is to 
+
 #### Create user controls for *Value Objects* or for simple types which need several controls to build their value.
 
 Either if our fullname field is a value object or a string made up of several values, it is usual to see common sets of controls that end repeated in several pages. For those is necessary to create a user control that renders the necessary controls, process the data that comes from them and then, return a value to be used.
