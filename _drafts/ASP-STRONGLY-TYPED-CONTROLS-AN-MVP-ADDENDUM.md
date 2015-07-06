@@ -5,6 +5,10 @@ date:   2012-10-30
 categories: Blog, ASP, MVP
 ---
 
+## Important note:
+
+This article has been abandoned because the concept is not well developed and has proved to bring many complications. May be another day I'b be taking a better approach to the subject. 
+
 If you are an ASP developer and hate messy code, it is very likely that you've heard about the [Model-View-Presenter pattern](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93presenter). As soon as one starts to play around with it, our mess-prone code starts to become more organized and our code-behind gets thinner, but we still have to deal with hundreds of user controls and code that does many repetitive tasks. This post is about a simple practice that may alleviate the remaining repetitive stuff left when applying the MVP pattern.
 
 ### A simple MVP example
