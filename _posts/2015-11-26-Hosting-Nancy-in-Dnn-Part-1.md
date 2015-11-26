@@ -37,13 +37,13 @@ Each one may have their own advantages and disadvantages, in what concerns to mo
 
 This time I've chosen ASP.NET, I haven't made any comparisons, that's for another post, the reason is simply to keep using what is already there; the asp.net stack.
 
- ### Getting the libraries
+### Getting the libraries
  
  All you need to start using Nancy is these two dlls: Nancy.dll and Nancy.Host.\*.dll where Nancy.Host.\*.dll will be Nancy.Host.Aspnet.dll for this post. You can get them from NuGet as usual.
  
  > **Tip:** None of the dlls containing modules need to reference the host dll, only Nancy.dll is required for those. 
  
- ### Writing owr module
+### Writing owr module
  
  Creating a module in nancy is as simple as creating a library project, reference Nancy.dll and creating a public class like this:
  
@@ -58,15 +58,15 @@ This time I've chosen ASP.NET, I haven't made any comparisons, that's for anothe
 }
  ```
  
- Note that we call the base constructor to pass it a base URL, this is important to avoid conflicts with DNN routing system. Just make sure that all modules have a base path and that it is the same for everyone, we'll see why later.
+Note that we call the base constructor to pass it a base URL, this is important to avoid conflicts with DNN routing system. Just make sure that all modules have a base path and that it is the same for everyone, we'll see why later.
  
- ### Configuring the handler
+### Configuring the handler
  
- For the ASP.NET host, we need to configure an HTTP handler. To do so, we just add a new entry in the Web.config file of DNN under configuration > system.webserver > modules:
+For the ASP.NET host, we need to configure an HTTP handler. To do so, we just add a new entry in the Web.config file of DNN under configuration > system.webserver > modules:
  
- ```xml
-  <add name="NancyHandler" verb="*" type="Nancy.Hosting.Aspnet.NancyHttpRequestHandler" path="MyServices*" /> 
- ```
+```xml
+ <add name="NancyHandler" verb="*" type="Nancy.Hosting.Aspnet.NancyHttpRequestHandler" path="MyServices*" /> 
+```
  
  ### Building the thing
  
@@ -74,7 +74,7 @@ This time I've chosen ASP.NET, I haven't made any comparisons, that's for anothe
  
  ### Launching in 3...2...1... wait! where is the rocket?
  
- Having everthing configured and built, all we need is to navigate to http://yoursite/MyServices and we will see a fancy hello world, isn't it?. Well **NO!** the first thing you'll find is a blank page or the DNN's 404. Really sad :(
+Having everthing configured and built, all we need is to navigate to http://yoursite/MyServices and we will see a fancy hello world, isn't it?. Well **NO!** the first thing you'll find is a blank page or the DNN's 404. Really sad :(
 	 
 After hours of suffering and blaming Dnn, I fond [this post](http://www.dnnsoftware.com/community-blog/cid/154902/getting-signalr-to-work-with-advanced-urls-in-dnn-71). 
 
