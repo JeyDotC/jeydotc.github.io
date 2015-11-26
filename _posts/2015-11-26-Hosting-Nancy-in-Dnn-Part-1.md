@@ -68,11 +68,11 @@ For the ASP.NET host, we need to configure an HTTP handler. To do so, we just ad
  <add name="NancyHandler" verb="*" type="Nancy.Hosting.Aspnet.NancyHttpRequestHandler" path="MyServices*" /> 
 ```
  
- ### Building the thing
+### Building the thing
  
  Just make sure that the dlls are in the bin folder of DNN.
  
- ### Launching in 3...2...1... wait! where is the rocket?
+### Launching in 3...2...1... wait! where is the rocket?
  
 Having everthing configured and built, all we need is to navigate to http://yoursite/MyServices and we will see a fancy hello world, isn't it?. Well **NO!** the first thing you'll find is a blank page or the DNN's 404. Really sad :(
 	 
