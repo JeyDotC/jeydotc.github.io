@@ -62,7 +62,7 @@ Note that we call the base constructor to pass it a base URL, this is important 
  
 ### Configuring the handler
  
-For the ASP.NET host, we need to configure an HTTP handler. To do so, we just add a new entry in the Web.config file of DNN under configuration > system.webserver > modules:
+For the ASP.NET host, we need to configure an HTTP handler. To do so, we just add a new entry in the Web.config file of DNN under configuration > system.webserver > handlers:
  
 ```xml
  <add name="NancyHandler" verb="*" type="Nancy.Hosting.Aspnet.NancyHttpRequestHandler" path="MyServices*" /> 
