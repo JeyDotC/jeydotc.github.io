@@ -43,7 +43,7 @@ This time I've chosen ASP.NET, I haven't made any comparisons, that's for anothe
  
  > **Tip:** None of the dlls containing modules need to reference the host dll, only Nancy.dll is required for those. 
  
-### Writing owr module
+### Writing our module
  
  Creating a module in nancy is as simple as creating a library project, reference Nancy.dll and creating a public class like this:
  
