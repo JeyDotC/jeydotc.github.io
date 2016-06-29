@@ -42,13 +42,13 @@ function MyFunction(array, numberToLookFor, currentIndex = 0){
 
 Let's call our function and see the events under the light of the story:
 
-| Function | Story
-|----------|-------------
-| `MyFunction(array, 3)` | You fall asleep.
-| `currentIndex++`       | Freddy scratches you.
-| `if(array[currentIndex] == numberToLookFor)` | Fred checks if you are dead.
-| `MyFunction(array, numberToLookFor, currentIndex);` | Puts you anesthesia and you fall in a nested dream.
-| `return array[currentIndex];` | You are officially dead, so we are done.
+| Function | Story       |
+|----------|-------------|
+| `MyFunction(array, 3)` | You fall asleep. |
+| `currentIndex++`       | Freddy scratches you. |
+| `if(array[currentIndex] == numberToLookFor)` | Fred checks if you are dead. | 
+| `MyFunction(array, numberToLookFor, currentIndex);` | Puts you anesthesia and you fall in a nested dream. |
+| `return array[currentIndex];` | You are officially dead, so we are done. |
 
 As you can see, here are the usual elements of a recursive function:
 
