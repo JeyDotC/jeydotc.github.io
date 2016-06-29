@@ -43,7 +43,7 @@ function MyFunction(array, numberToLookFor, currentIndex = 0){
 Let's call our function and see the events under the light of the story:
 
 | Function | Story
-|-
+|----------|-------------
 | `MyFunction(array, 3)` | You fall asleep.
 | `currentIndex++`       | Freddy scratches you.
 | `if(array[currentIndex] == numberToLookFor)` | Fred checks if you are dead.
@@ -53,7 +53,7 @@ Let's call our function and see the events under the light of the story:
 As you can see, here are the usual elements of a recursive function:
 
 | Element | Definition | Story | Code
-|-
+|---------|------------|-------|-------
 | **A stop condition** | Something that finishes the function | "You are dead" | "We found the number"
 | **A state** | Something that changes by each call | "Your injuries" | "The current index"
 | **A state changer** | An action that changes the conditions | "Fred scratches you" | "Add one to the current index"
