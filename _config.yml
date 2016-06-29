@@ -4,6 +4,7 @@ keywords: PHP, JavaScript, C#
 thumbnail: http://jeydotc.github.io/img/home-background.jpg
 
 markdown: redcarpet
+tables: true
 pygments: true
 url: http://jeydotc.github.io/
 domain: jeydotc.github.io
