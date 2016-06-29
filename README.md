@@ -1,4 +1,4 @@
 Blog
 ====
 
-My personal blog.
+My [personal blog](http://jeydotc.github.io/).
