@@ -316,7 +316,7 @@ But we can 'document', at a certain extent, that new feature, and also say 'Hey 
 trait IPacmanContractTrait {
 
     /**
-    * @dataProvider testEatCookieThrowIfNullOrEmptyProvider
+    * @dataProvider eatCookieThrowIfNullOrEmptyProvider
     * @expectedException ValueShouldNotBeNullOrEmptyException
     */
     public function testEatCookieThrowIfNullOrEmpty($cookie) {
@@ -327,7 +327,7 @@ trait IPacmanContractTrait {
         $result = $pacman->eatCookie($cookie);
     }
     
-    public function testEatCookieThrowIfNullOrEmptyProvider(){
+    public function eatCookieThrowIfNullOrEmptyProvider(){
         return [
             'TestWithNull' => [ null ],
             'TestWithEmpty' => [ '' ],
@@ -409,3 +409,91 @@ So, what could we do then? well, create a new interface, some `IDistinctPacman` 
 
 We have segregated interfaces, and it has been for a deeper reason that just the number of methods, how they look like or how are they related. And also we're aware of a business rule we didn't think about before, **regular Pacmans accept repeated cookies**. That gives us material to add even more significative test cases to our trait, making unit tests even more useful and descriptive.
 
+## Limitations
+
+As with any development practice, there are limitations and disadvantages associated with them. The specific one I can come up with is that, methods that can vary their returned value or internal state based on the implementation, might not be a good fit for this practice. Let's see an example to clarify this:
+
+Let's say we have this interface which sole purpose is to receive a string and return a message according to that string:
+
+```php
+interface ISaySomething {
+    public function say(string $name): string;
+}
+```
+
+And then we have some implementations:
+
+```php
+class SayHello implements ISaySomething {
+    public function say(string $name): string {
+        return "Hello, $name";
+    }
+}
+
+class SayWhatsup implements ISaySomething {
+    public function say(string $name): string {
+        return "What's up, $name?";
+    }
+}
+```
+
+As you can see, the contract trait would have to deal with different results based on the implementations, we could do something like this:
+
+```php
+trait ISaySomethingContract {
+    /**
+    * @dataProvider sayProvider
+    */
+    public function testSay($name, $expectedResult){
+        // Arange
+        $sayer = $this->createISaySomething();
+        
+        // Act
+        $result = $sayer->say($name);
+        
+        // Assert
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public abstract function createISaySomething(): ISaySomething;
+
+    public abstract function getSayExpectedResultWhenJohn(): string;
+    public abstract function getSayExpectedResultWhenJane(): string;
+    public abstract function getSayExpectedResultWhenJim(): string;
+
+
+    public function sayProvider(){
+        return [
+            'TestWhenJohn' => [ 'John', $this->getSayExpectedResultWhenJohn() ],
+            'TestWhenJane' => [ 'John', $this->getSayExpectedResultWhenJane() ],
+            'TestWhenJim' => [ 'John',  $this->getSayExpectedResultWhenJim() ],
+        ];
+    }
+}
+```
+
+As you can see, we've managed to continue using contract traits for this case, but, you can see the potential problem here, we'll have an explosion of abstract methods if the interface is big enough or the methods have a lot of cases. 
+
+Yet, we can still find this a suitable solution to our needs, that's your call to decide if having to implement 200 methods worth it in order to have your contracts well documented and enforced in a single place, regardless the number of implementation under your control.
+
+There might be more problems derived from this practice, but, so far, to the usage I've given to it, it might be a good tool, time and usage will say if that's the case.
+
+## Things I wouldn't recommend with contract traits
+
+If you decide to apply this practice, here's a list of things I'd keep from doing, yet, it still your decision if it applies to your particular case or not.
+
+* Introduce constraints that only affect certain implementations: As expressed in the **Enforcing the implicit contract** section, it is generally a bad idea to introduce constraints that only affect a certain implementation. But, if your specific rule doesn't collide with the general ones, you could still create specific test methods for those special cases.
+* Override the trait test methods: If you have to override those methods, you a) are doing a bad implementation of the interface, b) need to implement a different/new interface or c) the interface might be doing more than it should.
+
+
+## And what about other languages?
+
+Well, sadly, many languages don't support traits, that's one of the reasons I'm doing this article on PHP, so, if this practice inspires you to do something similar in languages without traits, I encourage you to either create some workaround or start a change.org request to have traits in your language... and post it in the comments below :)
+
+## Conclusion
+
+Unit tests can benefit from a wise usage of traits by allowing to save effort in writing unit tests, documenting and enforcing interface implicit rules and make developers think more carefully about their interface design.
+
+Just, as with any practice, be careful when using it. And let me know of any disadvantage or problem you see with it in comments.
+
+Thanks for reading, and here is an applied example of what I said above, this small library I made to provide what I hope is a pretty useful collections library: https://github.com/JeyDotC/jeydotc-enumerable/tree/master/tests
