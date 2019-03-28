@@ -248,6 +248,7 @@ So far, we can see a good save on repeated code for your unit tests. That's cool
 * Document the implicit parts of the interface's contract in your tests.
 * Enforce rules on every single interface's implementation under your control.
 * Become actually aware of the need of preserving the Lishkov substitution principle.
+* Think deeper in the Responsibility segregation principle.
 
 Let's dig further in the above points:
 
@@ -255,5 +256,156 @@ Let's dig further in the above points:
 
 Let's continue with our Pacman example. Our interface has an `eatCookie()` method, and for every implementation there's a test that will check that it actually works. Great, but a few weeks after the first release of our Pacman software, we got buried into an avalanche of "Hey, I see empty and nully cookies out there! I don't like them, I want my cookies pretty and tasty!". And that's because we forgot to enforce a rule of not allowing null or empty cookies in our `IPacman` implementations!
 
-So, what can we do then, well, we could fix all implementations to throw in case of null/empty (a.k.a. falsy) cookies:
+So, what can we do then, well, we could fix all implementations to throw in case of null/empty cookies:
+
+```php
+interface IPacman {
+    public function eatCookie(string $cookie): IPacman;
+
+    public function getCookies(): array;
+}
+
+final class Ensure {
+    public static function notNullOrEmpty(string $value): void {
+        if($value === null || $value === ''){
+            throw new ValueShouldNotBeNullOrEmptyException();
+        }
+    }
+}
+
+class ArrayPacman implements IPacman {
+    private $stomach = [];
+    
+    public function eatCookie(string $name): IPacman {
+        Ensure::notNullOrEmpty($name);
+        $this->stomach[] = $name;
+        return $this;
+    }
+
+    public function getCookies(): array {
+        return $this->stomach;
+    }
+}
+
+class FancyCollectionPacman implements IPacman {
+    private $belly;
+
+    public function __construct(){
+        $this->belly = new SomeFancyCollectionClass();
+    }
+    
+    public function eatCookie(string $name): IPacman {
+        Ensure::notNullOrEmpty($name);
+        $this->belly->add($name);
+        return $this;
+    }
+
+    public function getCookies(): array {
+        return $this->belly->toArray();
+    }
+}
+```
+
+Great, we made the homework! we validate cookie to be not null or empty. But we didn't document it! Why? You name it: we're in a hurry, docs are boring, we're quite negligent, my boss says 'forget about ~freeman~ docs!', I just forgot it, etc.
+
+The point is, there are plenty of probabilities that no one will write the docs for the new constraint, and many new developers, unaware of that situation, will create their implementation without such check. 
+
+But we can 'document', at a certain extent, that new feature, and also say 'Hey Jim, before implementing your new pacman, make sure to look at the contract trait'
+
+```php
+trait IPacmanContractTrait {
+
+    /**
+    * @dataProvider testEatCookieThrowIfNullOrEmptyProvider
+    * @expectedException ValueShouldNotBeNullOrEmptyException
+    */
+    public function testEatCookieThrowIfNullOrEmpty($cookie) {
+        // Arrange
+        $pacman = $this->createPacman();
+        
+        // Act
+        $result = $pacman->eatCookie($cookie);
+    }
+    
+    public function testEatCookieThrowIfNullOrEmptyProvider(){
+        return [
+            'TestWithNull' => [ null ],
+            'TestWithEmpty' => [ '' ],
+        ];
+    }
+
+    // Here go the the other tests....
+
+    protected abstract function createPacman(): IPacman;    
+}
+```
+
+Whoever can read a unit test, can see there are constraints associated to the `eatCookie` method, and that take us to the next point:
+
+### Enforcing the implicit contract
+
+Now let's assume Jim decided not to follow his teammate's wise advice, and created his new implementation without even looking at the trait:
+
+```php
+interface IPacman {
+    public function eatCookie(string $cookie): IPacman;
+
+    public function getCookies(): array;
+}
+
+final class Ensure {
+    public static function notNullOrEmpty(string $value): void {
+        if($value === null || $value === ''){
+            throw new ValueShouldNotBeNullOrEmptyException();
+        }
+    }
+}
+
+class FancyApiPacman implements IPacman {
+    private $api;
+    // Constructor should initialize the Api...
+    
+    public function eatCookie(string $name): IPacman {
+        // Oops, someone failed to check the parameter... and will pay for it.
+        $this->api->post('/cookies', $name);
+        return $this;
+    }
+
+    public function getCookies(): array {
+        return $this->api->get('/cookies');
+    }
+}
+
+// And then we create the tests:
+
+class FancyApiPacmanTest extends TestCase {
+    use IPacmanContractTrait;
+
+    public function createPacman(){
+        return new FancyApiPacman('some-test-endpoint');
+    }
+}
+```
+
+And what will happen to Jim? .... that's right, BOOM! tests failing, and the guy finally looking at the contract trait and realizing he needs to stick to the rules imposed by it.
+
+### Honoring the Lishkov substitution principle
+
+All this lead us to something even deeper and important, being able to enforce at least one of the SOLID principles: Lishkov substitution. It can be seen, more or less, as: whatever implementation of an interface should fully comply with the interface's contract, and not only implement the methods, it should also stick to the implicit constraints/invariants of that interface, thus, making any implementation 'indistinguishable' from the other.
+
+This principle is important to keep a system's predictability, and the above practice helps on that, not only by saving a lot of work on unit test writing, but also by making implicit rules explicit, and enforcing them.
+
+Whenever you want to create a new implementation of an interface, you'll have to thoroughly check the contract and make sure it can replace/be replaced by other implementations.
+
+### Actually caring about Interface Segregation principle
+
+Interface segregation principle looks like a very simple to follow one, just, don't put a bazillion methods in that bloody interface, that's all, right? Well, no, lets illustrate it with a simple example:
+
+Let's say that we needed to create an implementation of `IPacman` that didn't accept repeated cookies. There's a problem here, none of the other implementations count on that.
+
+We could say, well, just apply that constraint to everyone, and let's go lunch. But, the existing ones don't enforce such rule for some reason, they're in production and no one complaints about their repeated cookies, why? because repeated cookies are part of the business, and not allowing them would go against the end user who expects to be able to feed his Pacman with repeated cookies.
+
+So, what could we do then? well, create a new interface, some `IDistinctPacman` which contract will look pretty much like the original `IPacman` one, but with the implicit constraint of allowing only unique cookies.
+
+We have segregated interfaces, and it has been for a deeper reason that just the number of methods, how they look like or how are they related. And also we're aware of a business rule we didn't think about before, **regular Pacmans accept repeated cookies**. That gives us material to add even more significative test cases to our trait, making unit tests even more useful and descriptive.
 
