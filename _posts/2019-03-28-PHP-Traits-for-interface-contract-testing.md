@@ -306,7 +306,7 @@ class FancyCollectionPacman implements IPacman {
 }
 ```
 
-Great, we made the homework! we validate cookie to be not null or empty. But we didn't document it! Why? You name it: we're in a hurry, docs are boring, we're quite negligent, my boss says 'forget about ~freeman~ docs!', I just forgot it, etc.
+Great, we made the homework! we validate cookie to be not null or empty. But we didn't document it! Why? You name it: we're in a hurry, docs are boring, we're quite negligent, my boss says 'forget about ~~freeman~~ docs', we just forgot it, etc.
 
 The point is, there are plenty of probabilities that no one will write the docs for the new constraint, and many new developers, unaware of that situation, will create their implementation without such check. 
 
@@ -399,7 +399,7 @@ We could say, well, just apply that constraint to everyone, and let's go lunch. 
 
 So, what could we do then? well, create a new interface, some `IDistinctPacman` which contract will look pretty much like the original `IPacman` one, but with the implicit constraint of allowing only unique cookies.
 
-We have segregated interfaces, and it has been for a deeper reason that just the number of methods, how they look like or how are they related. And also we're aware of a business rule we didn't think about before, **regular Pacmans accept repeated cookies**. That gives us material to add even more significative test cases to our trait, making unit tests even more useful and descriptive.
+We have segregated interfaces, and it has been for a deeper reason that just the number of methods, how they look like or how are they related. And also we're aware of a business rule we didn't think about before: **regular Pacmans accept repeated cookies**. That gives us material to add even more significative test cases to our trait, making unit tests even more useful and descriptive.
 
 ## Limitations
 
@@ -488,4 +488,4 @@ Unit tests can benefit from a wise usage of traits by allowing to save effort in
 
 Just, as with any practice, be careful when using it. And let me know of any disadvantage or problem you see with it in comments.
 
-Thanks for reading, and here is an applied example of what I said above, this small library I made to provide what I hope is a pretty useful collections library: https://github.com/JeyDotC/jeydotc-enumerable/tree/master/tests
+Thanks for reading, and here is an applied example of what I said above, this small library I made to provide what I hope is a pretty useful collections library: [https://github.com/JeyDotC/jeydotc-enumerable/tree/master/tests](https://github.com/JeyDotC/jeydotc-enumerable/tree/master/tests)
