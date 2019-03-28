@@ -64,10 +64,6 @@ So far, so good, we have successfully documented what we expect from the `IPacma
 * How many times will I have to repeat this code? (a.k.a. how many implementations of this interface will we create?)
 * If the non-explicit rules (exceptions, invariants) change, at how many places will I have to reflect that change?
 
-And this will be his face:
-
-![Oh boy!](https://i.kym-cdn.com/photos/images/original/000/140/966/3332f6ef40a0ae9dd34d6d5eaa7e7524656a1f77.png)
-
 ## Enter the Traits
 
 In PHP, since version 5.4.0, we have these artifacts called **traits**, which basically inject variables and methods into a class, making them actually **part of the class**.
@@ -177,6 +173,10 @@ class FancyCollectionPacmanTest extends TestCase {
 ```
 
 Mmm, that didn't require much effort, just copy, paste, and change a few things here and there, but, now think of this: What if that interface had 3 methods, or 6, or 36? and what if the cases for each method were 8, or 32? Every new implementation would be a really boring task if we wanted to have them tested.
+
+And this will be his face:
+
+![Oh boy!](/img/clean-all-things.png)
 
 So, let's try moving all repeated stuff into a trait:
 
@@ -351,14 +351,6 @@ interface IPacman {
     public function eatCookie(string $cookie): IPacman;
 
     public function getCookies(): array;
-}
-
-final class Ensure {
-    public static function notNullOrEmpty(string $value): void {
-        if($value === null || $value === ''){
-            throw new ValueShouldNotBeNullOrEmptyException();
-        }
-    }
 }
 
 class FancyApiPacman implements IPacman {
