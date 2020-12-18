@@ -439,6 +439,125 @@ This `use.state` implementation has some rules similar to React's `useState` to 
 
 ### 3.3 Use.val
 
+We tend to underestimate the complexity of input fields, but man, they bring lots of complications, from their increased update frequency to the focus/blur logic.
+
+We can't use `use.state` on inputs on this experiment because any render will make the input lose focus, thus, making typing on it impossible. We could tell the `setValue` function to not schedule a render when we update the input, but then, since we don't call the render function, the state value we have will be outdated.
+
+That's where `use.val` come in handy. This hook works like `use.state`, but, instead of returning a value and its setter, it returns two functions: a getter which will return the latest version of the current state, and a setter that will update the state, but won't schedule a render unless you explicitly tell it to.
+
+Let's see an example usage:
+
+```javascript
+// Counter.js 
+(function ($, exports){
+    const { 
+        Button, 
+        withState 
+    } = exports;
+    
+    function Counter(props, use){
+        const [getMultiplier, setMultiplier] = use.val(0); //<-- This is a state associated to our input.
+        const [count, setCount] = use.state(0); 
+        const [isOdd, setIsOdd] = use.state(false);
+
+        return $("<div>").append(
+            $("<input>").attr({ type: 'number', placeholder: 'Multiply count by' })  //<-- Here's a number input.
+                .val(getMultiplier()) //<-- Here we set its value using the setter returned by the hook. This is guaranteed to be the latest version.
+                .on('keyup', e => setMultiplier(e.target.value)) //<-- This updates the state without scheduling a render.
+                .on('change', e => setMultiplier(e.target.value, { shouldRender: true })), //<-- This is called only when the input loses focus, so we can safely schedule a render here. 
+            "Count: ", count,
+            "Value: ", count * getMultiplier(), //<-- Here we're guaranteed that we have access to the latest multiplier value.
+            isOdd ? " is Odd" : " is even",
+            Button().text("Add").on('click', () => {
+                setCount(count + 1);
+                setIsOdd(count % 2 !== 0);
+            })
+        );
+    }
+    exports.Counter = withState(Counter); 
+})(jQuery, window);
+```
+
+#### 3.3.1 Implementation Time!
+
+Now that we know what we want, let's modify our state management thing to reflect that:
+
+```javascript
+// Cjq.js 
+(function ($, exports){
+    
+    function StatefulComponent(props, render) {
+        let state = [];
+        let statesCount = 0;
+
+        let needsReRender = false; 
+        let $currentElement = undefined;
+
+        const scheduleRender = () => {
+            if (!needsReRender) {
+                needsReRender = true;
+                setTimeout(() => this.doRender(), 0);
+            }
+        };
+
+        // This is the handle we send to the component in order to provide context when rendering.
+        const use = {
+            state: (initial) => { 
+                const currentIndex = statesCount; 
+
+                if (!$currentElement) {
+                    state.push(initial);
+                }
+
+                statesCount++;
+
+                return [
+                    state[currentIndex], 
+                    (newValue, { shouldRender = true} = {}) => { //<-- First off: Let's receive an options parameter that allows us to skip the rendering scheduling if necessary.
+                        state[currentIndex] = newValue;
+                        shouldRender && scheduleRender(); //<-- Schedule a render if shouldRender is true.
+                    },
+                    currentIndex //<-- Let's return the index, this will be useful, not only on val(), but also when implementing use.effect.
+                ];
+            },
+            val: (initial) => { //<-- This is our new hook, it looks just like state, but the returned values are different.
+                const [, setValue, valueIndex] = use.state(initial); //<-- Here we get the setter and the index we added in the previous method. We're ignoring the current value in this case.
+                return [
+                    () => state[valueIndex], //<-- This is the getter, it will directly take the value from state.
+                    (value, {shouldRender = false} = {}) => setValue(value, {shouldRender}) //<-- This is the setter, will do exactly the same as use.state,
+                                                                                            //    just that it will set the shouldRender option to false by default.
+                ];
+            },
+        };
+
+        this.doRender = () => {
+           needsReRender = false;
+
+           statesCount = 0;
+
+           const $resultingElement = render(props || {}, use);
+
+           if ($currentElement) {
+               $currentElement.replaceWith($resultingElement);
+           }
+
+           $currentElement = $resultingElement;
+
+           return $currentElement;
+        }
+    }
+
+    function withState(Component){
+        
+        return function (props){
+            return new StatefulComponent(props, Component).doRender();
+        };
+    }
+    exports.withState = withState;
+})(jQuery, window);
+```
+
+
 
 ### 3.4 Use.reducer
 
