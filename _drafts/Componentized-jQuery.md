@@ -557,11 +557,340 @@ Now that we know what we want, let's modify our state management thing to reflec
 })(jQuery, window);
 ```
 
+Now we can have an input and only redraw if the control loses focus, all that without losing the state info.
 
+All that comes with a limitation, though: You cannot update components while typing :(. Sad, but, for now, unavoidable, or at least you'd have to fallback to old-school jQuery code.
+
+> **Before we continue:** So far, we've added just enough stuff to do a viable component. But that component will destroy the state of its children on every re-draw. For now, you could make all children stateless and have only one source of truth.
+> 
+> Such limitation could complicate things a lot. Don't worry, in section 4, we'll cover the Child state preservation topic :)   
 
 ### 3.4 Use.reducer
 
+The `useReducer` hook in react is another powerful tool aiming to deal with complex state objects among other things. For now, we'll just cover the most basic use case scenario, managing complex state objects.
+
+In order to explain our reducer implementation, let's take a look at a typical React useReducer example:
+
+```jsx
+// This function is in charge of altering the general state.
+function reducer(state, action) { //<-- The state parameter is the current state, and the action is an object which tell us how do we want to alter it.
+   // The general convention for action is to have this structure: { type: 'the-action-we-want-to-do', payload: {/* extra parameters if needed */} }
+   // Off course this is just a convention and action can have whatever structure you want.
+  switch (action.type) {
+    case 'increment': //<-- Here we check what action we want to perform.
+      return {count: state.count + 1}; //<-- And return the new state.
+    case 'decrement':
+      return {count: state.count - 1};
+    default:
+      throw new Error();
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, {count: 0}); //<-- Here we get the current state or initialize it if it doesn't exist already.
+  return (
+    <>
+      Count: {state.count} <!-- Notice that state is a complex object, so we need to access its properties. --> 
+      <button onClick={() => dispatch({type: 'decrement'})}>-</button> <!-- Here we request to alter the state and potentially re-draw -->
+      <button onClick={() => dispatch({type: 'increment'})}>+</button> <!-- Here we request to alter the state and potentially re-draw -->
+    </>
+  );
+}
+``` 
+
+UseReducer is not that different from useState, is just a variant to deal with complex objects instead of (ideally) simple scalar values.
+
+#### 3.4.1 Implementation time!
+
+Actually, the implementation is quite simpler than that of use.state:
+
+```javascript
+// Cjq.js 
+(function ($, exports){
+    
+    function StatefulComponent(props, render) {
+        let state = [];
+        let statesCount = 0;
+
+        const reducibleState = { //<-- Let's hold our reduce state separated from the other one.
+            isNew: true,
+            data: undefined, //<-- This is the actual state data
+            init: (initial) => {
+                if (this.isNew) { //<-- We only initialize the state during the first render.
+                    this.data = initial;
+                }
+            }
+        };
+
+        let needsReRender = false; 
+        let $currentElement = undefined;
+
+
+        const scheduleRender = () => {
+            if (!needsReRender) {
+                needsReRender = true;
+                setTimeout(() => this.doRender(), 0);
+            }
+        };
+
+        // This is the handle we send to the component in order to provide context when rendering.
+        const use = {
+            state: (initial) => { 
+                const currentIndex = statesCount; 
+
+                if (!$currentElement) {
+                    state.push(initial);
+                }
+
+                statesCount++;
+
+                return [
+                    state[currentIndex], 
+                    (newValue, { shouldRender = true} = {}) => {
+                        state[currentIndex] = newValue;
+                        shouldRender && scheduleRender();
+                    },
+                    currentIndex
+                ];
+            },
+            val: (initial) => {
+                const [, setValue, valueIndex] = use.state(initial);
+                return [
+                    () => state[valueIndex],
+                    (value, {shouldRender = false} = {}) => setValue(value, {shouldRender})
+                ];
+            },
+            reducer: (reducer, initial) => {
+                reducibleState.init(initial); //<-- Initialize the state if it isn't already initialized.
+
+                return [
+                    reducibleState.data, //<-- Return the current state. 
+                    dispatchData => {
+                        const newData = reducer(reducibleState.data, dispatchData); //<-- Allow the reducer alter the state.
+                        reducibleState.data = newData; //<-- Update the data.
+                        scheduleRender(); //<-- Notify state changed.
+                    } //<-- This is the dispatcher, it just calls the reducer providing the current state and the dispatchData (the action).
+                ];
+            },
+        };
+
+        this.doRender = () => {
+           needsReRender = false;
+
+           statesCount = 0;
+
+           const $resultingElement = render(props || {}, use);
+
+           if ($currentElement) {
+               $currentElement.replaceWith($resultingElement);
+           }
+
+           $currentElement = $resultingElement;
+
+           return $currentElement;
+        }
+    }
+
+    function withState(Component){
+        
+        return function (props){
+            return new StatefulComponent(props, Component).doRender();
+        };
+    }
+    exports.withState = withState;
+})(jQuery, window);
+``` 
+
+With this implementation, we can now implement our simple counter like this:
+
+```javascript
+// Counter.js 
+(function ($, exports){
+    const { 
+        Button, 
+        withState 
+    } = exports;
+
+    function reducer(state, action) { //<-- The state parameter is the current state, and the action is an object which tell us how do we want to alter it.
+      switch (action.type) {
+        case 'increment':
+          return {count: state.count + 1};
+        case 'decrement':
+          return {count: state.count - 1};
+        default:
+          throw new Error();
+      }
+    }
+    
+    function Counter(props, use){
+        const [state, dispatch] = use.reducer(reducer, {count: 0}); //<-- Here we get the current state or initialize it if it doesn't exist already.
+
+        return $("<div>").append(
+            "Count: ", count, //<-- Let's render the current value.
+            Button().text("Add").on('click', () => dispatch({type: 'increment'})), //<-- Notify of state change.
+            Button().text("Substract").on('click', () => dispatch({type: 'decrement'})) //<-- Notify of state change.
+        );
+    }
+    exports.Counter = withState(Counter); 
+})(jQuery, window);
+```
+
+In this implementation we can only have one reducer. Adding more reducers can be easily done, but, for now I don't see the need.
+
 ### 3.5 Use.effect
+
+React's useEffect hook allows to invoke functions in specific moments of the component's lifecycle:
+
+```js
+// On every render:
+useEffect(function (){});
+
+// Only on the first render:
+useEffect(function (){}, []);
+
+// Only when stateValue changes:
+useEffect(function (){}, [ stateValue ]);
+```
+
+When we call `useEffect`, we're telling React to invoke the given function when the dependencies (the second parameter) are met.
+
+The first two forms can be implemented pretty much as they look like in the original React, but the third form requires an important change due to the lack of transpiling on our experiment:
+
+ ```javascript
+ // Counter.js 
+ (function ($, exports){
+     const { 
+         Button, 
+         withState 
+     } = exports;
+     
+     function Counter(props, use){
+         const [count, setCount, countHandle] = use.state(0); //<-- The third returned value is the state index, we added it as part of the use.val implementation, but we can re-use it here.
+
+        // On every render:
+        use.effect(function (){
+            console.log('Component Rendererd!');
+        });
+        
+        // Only on the first render:
+        use.effect(function (){
+            console.log('First Component Render!');
+        }, []);
+        
+        // Only when stateValue changes:
+        use.effect(function (){
+            console.log('Count changed!');
+        }, [ countHandle ]); //<-- Here we're declaring a dependency between the given function and the count state value.
+ 
+         return $("<div>").append(
+             "Count: ", count,
+             Button().text("Add").on('click', () => setCount(count + 1))
+         );
+     }
+     exports.Counter = withState(Counter); 
+ })(jQuery, window);
+ ```
+
+As you can notice, instead of directly sending the value, we provide a `countHandle` which is just the index of the count value in the state list. We have to do that because we're not transpiling the code, so we can't calculate the dependencies as in React.
+
+#### 3.4.1 Implementation time!
+
+```javascript
+// Cjq.js 
+(function ($, exports){
+    
+    function StatefulComponent(props, render) {
+        let state = [];
+        let statesCount = 0;
+
+        const reducibleState = {
+            isNew: true,
+            data: undefined,
+            init: (initial) => {
+                if (this.isNew) {
+                    this.data = initial;
+                }
+            }
+        };
+
+        let needsReRender = false; 
+        let $currentElement = undefined;
+
+
+        const scheduleRender = () => {
+            if (!needsReRender) {
+                needsReRender = true;
+                setTimeout(() => this.doRender(), 0);
+            }
+        };
+
+        // This is the handle we send to the component in order to provide context when rendering.
+        const use = {
+            state: (initial) => { 
+                const currentIndex = statesCount; 
+
+                if (!$currentElement) {
+                    state.push(initial);
+                }
+
+                statesCount++;
+
+                return [
+                    state[currentIndex], 
+                    (newValue, { shouldRender = true} = {}) => {
+                        state[currentIndex] = newValue;
+                        shouldRender && scheduleRender();
+                    },
+                    currentIndex
+                ];
+            },
+            val: (initial) => {
+                const [, setValue, valueIndex] = use.state(initial);
+                return [
+                    () => state[valueIndex],
+                    (value, {shouldRender = false} = {}) => setValue(value, {shouldRender})
+                ];
+            },
+            reducer: (reducer, initial) => {
+                reducibleState.init(initial);
+
+                return [
+                    reducibleState.data, 
+                    dispatchData => {
+                        const newData = reducer(reducibleState.data, dispatchData);
+                        reducibleState.data = newData;
+                        scheduleRender();
+                    }
+                ];
+            },
+        };
+
+        this.doRender = () => {
+           needsReRender = false;
+
+           statesCount = 0;
+
+           const $resultingElement = render(props || {}, use);
+
+           if ($currentElement) {
+               $currentElement.replaceWith($resultingElement);
+           }
+
+           $currentElement = $resultingElement;
+
+           return $currentElement;
+        }
+    }
+
+    function withState(Component){
+        
+        return function (props){
+            return new StatefulComponent(props, Component).doRender();
+        };
+    }
+    exports.withState = withState;
+})(jQuery, window);
+``` 
 
 ## 4. Child state preservation
 
