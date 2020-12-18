@@ -77,7 +77,7 @@ Now we can create a module that does something and export it:
 
 If you're familiar with node modules in general, you'll notice that you get some of its benefits, like, local variables, once per module load initialization logic and all that stuff.
 
-### 1.2 Let's import something
+### 1.2 Let's import it
 
 Now our module has been declared, we can import it from somewhere else:
 
@@ -269,11 +269,176 @@ In order to manage state, the best option I know so far is using classes. For th
 })(jQuery, window);
 ```
 
+Ok, now we have a skeleton of the state management system. The way it will work will be as follows:
 
+1. Transform your component into a stateful one by calling `withState`.
+2. Import your component.
+3. Call it. This will be the very first render for the component, so, at this moment, we will create a new `StatefulComponent` instance and immediately call `doRender()`. Note that you will never have direct access to the state class, you will receive a jQuery object as a result.
+4. Detect a state change, if the state changes (by any of the means we're going to provide in the next sections), we call `doRender()` again. Note that we're not calling the full thing that instantiates the `StatefulComponent` class, we call the `doRender()` on an already existing instance, such instance will have access to the current state.
+
+The above list might look confusing at first, but it will be clearer once we implement our first state management tool: The `use.state` hook.
 
 ### 3.2 Use.state 
 
-### 3.3 Watch out the inputs!  
+The first thing we would like to mimic is the React's `useState` hook. Just to give you an idea, this is what a component using it would typically look like in React:
+
+```jsx
+// Our Counter component if made in React:
+function Counter(props){
+    const [count, setCount] = useState(0);
+    
+    return (<div>Count: {count} <button onClick={()=> setCount(count + 1)}>Add</button></div>);
+}
+```
+
+In the above snipped you can see three key parts of the state lifecycle:
+
+1. `const [count, setCount] = useState(0);`: Here we retrieve the current count state if exists or initialize it if it doesn't. 
+2. The `count` variable is just the current value and the `setCount` is a callback to notify a state change.
+3. When we handle the `onClick` event, we notify that state has changed and that we need to re-render this component.
+
+There are two things that will differ in our experiment from React, and both are caused by the same reason: we're not transpiling anything.
+
+The first thing different from react will be the `useState` function. In React, that call will be transformed to something like `__currentContext__.useState(0);`. But since we don't have such a tool, we'll need to find another way, in this case, we'll just receive the context as an object in our component. Don't worry about the change in the function's signature, because it won't be called directly by the user, but by the `StatefulComponent` class.
+
+The second thing, is obviously the fact that we won't have the fancy jsx feature, so, we'll be returning jQuery objects instead, as explained in section 2.
+
+So, this is what our version of Counter will look like:
+
+```javascript
+// Counter.js 
+(function ($, exports){
+    const { 
+        Button, 
+        withState 
+    } = exports;
+    
+    function Counter(props, use){
+        const [count, setCount] = use.state(0); //<-- As in React, retrieve the current state if exists, initialize if it doesn't.
+
+        return $("<div>").append(
+            "Count: ", count, //<-- Let's render the current value.
+            Button().text("Add").on('click', () => setCount(count + 1)) //<-- Notify of state change.
+        );
+    }
+    exports.Counter = withState(Counter); 
+})(jQuery, window);
+```
+
+As you can see, they look very similar (except for the two differences stated above). The best of all, you don't need to do any change in the other files, you are still able to call the Counter component as `Counter()` and all the stateful stuff will happen internally.
+
+#### 3.2.1 Implementation Time!
+
+We know what we want, it's time to implement it. We will need to deal with three moments:
+
+1. **The first call:** in this part we will initialize the state for the first time and provide the underlying component with the tools to notify of a state change. This happens when instantiating the `StatefulComponent` object.
+2. **Handle the state change:** In this case we update the state and schedule a re-render. This happens whenever the provided setXXX state gets invoked.
+3. **The re-render:** At this point we will call the component's render function and make sure the changes get reflected into the DOM. This happens (hopefully) at the end of the event loop cycle, and only if the state has changed.
+
+Here's the implementation:
+
+```javascript
+// Cjq.js 
+(function ($, exports){
+    
+    function StatefulComponent(props, render) {
+        let state = []; //<-- Here we hold our state.
+        let statesCount = 0; //<-- Since the use.state can be called multiple times in a single render, we need to keep track on what specific moment is it being called in order to return the correct state value and callback.
+
+        let needsReRender = false; //<-- Do we need to render the component at the end of the event loop? 
+        let $currentElement = undefined; //<-- This is the current element. If it is undefined, that means we're rendering for the first time.
+
+        const scheduleRender = () => {
+            if (!needsReRender) {
+                needsReRender = true;
+                setTimeout(() => this.doRender(), 0);
+            }
+        }; //<-- This function makes sure we call the render only when needed, after all the setState for this component have been invoked.
+
+        // This is the handle we send to the component in order to provide context when rendering.
+        const use = {
+            state: (initial) => {
+                const currentIndex = statesCount; //<-- Here we determine on which state call we are, first, second, nth...
+
+                if (!$currentElement) {
+                    state.push(initial);
+                } //<-- If this is the first render, we just push the value into the state list.
+
+                statesCount++;
+
+                return [
+                    state[currentIndex], //<-- This is the current state. 
+                    (newValue) => {
+                        state[currentIndex] = newValue; //<-- Update the state value.
+                        scheduleRender(); //<-- Notify state changed.
+                    }
+                ]; //<-- Here we are returning the current state and a function that will update the value and schedule a reRender.
+            }
+        };
+
+        this.doRender = () => {
+           needsReRender = false; //<-- Make sure future state changes will work even if this render fails.
+
+           statesCount = 0; //<-- Reset the states count so the 'use' object works correctly.
+
+           const $resultingElement = render(props || {}, use); //<-- Render the component. Notice that we send the 'use' object as the second parameter.
+
+           if ($currentElement) {
+               $currentElement.replaceWith($resultingElement);
+           } //<-- If this isn't the first render, we make sure to replace the previous incarnation of this component, so it will draw in the right place.
+
+           $currentElement = $resultingElement; //<-- Update the current element.
+
+           return $currentElement; //<-- Return the result.
+        }
+    }
+
+    function withState(Component){
+        
+        return function (props){
+            return new StatefulComponent(props, Component).doRender();
+        };
+    }
+    exports.withState = withState;
+})(jQuery, window);
+```
+
+Wit this implementation, you can create a component which can hold a state, actually, multiple state values, just as in actual react:
+
+```javascript
+// Counter.js 
+(function ($, exports){
+    const { 
+        Button, 
+        withState 
+    } = exports;
+    
+    function Counter(props, use){
+        const [count, setCount] = use.state(0); 
+        const [isOdd, setIsOdd] = use.state(false); //<-- You can hold as many states as needed.
+
+        return $("<div>").append(
+            "Count: ", count,
+            isOdd ? " is Odd" : " is even",
+            Button().text("Add").on('click', () => {
+                setCount(count + 1);
+                setIsOdd(count % 2 !== 0); //<-- You can issue as many state changes as needed, but there will be only one render call at the end of this event loop.
+            })
+        );
+    }
+    exports.Counter = withState(Counter); 
+})(jQuery, window);
+```
+
+This `use.state` implementation has some rules similar to React's `useState` to avoid unpredictable behaviors:
+
+1. The `use.state` calls should be as close to the function's beginning as possible.
+2. Do not put `use.state` calls under conditions or loops.
+
+> Curiously enough, you can skip rule number 2. But **only** if it's under a loop on a collection that will NEVER change, though, for the sake of clarity, just don't. 
+
+### 3.3 Use.val
+
 
 ### 3.4 Use.reducer
 
