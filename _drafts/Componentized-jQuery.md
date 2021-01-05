@@ -47,7 +47,7 @@ Then, we'll need to follow the these 4 steps:
 
 ## 1. No modules? Don't worry
 
-The first thing we do in any react application is to declare and load modules with the `export` and `import` keywords, but we're not bundling or compiling this or even using amd, so, what do we have left? Well, the classic self-invoking functions!
+The first thing we do in any react application is to declare and load modules with the `export` and `import` keywords, but we're not bundling or compiling this or even using amd, so, what do we have left? Well, the classic [Immediately Invoked Function Expressions!](https://developer.mozilla.org/en-US/docs/Glossary/IIFE)
 
 ```javascript
 (function ($, exports){
@@ -59,7 +59,7 @@ Notice that the declared function will receive two values: jQuery, which will be
 
 ### 1.1 Let's export something
 
-Now we can create a module that does something and export it:
+Now we can create a module that does something and exports it:
 
 ```javascript
 // MyCoolModule.js 
@@ -76,7 +76,7 @@ If you're familiar with node modules in general, you'll notice that you get some
 
 ### 1.2 Let's import it
 
-Now our module has been declared, we can import it from somewhere else:
+Now, with our module declared, we can import it from somewhere else:
 
 ```javascript
  // SomeOtherModule.js 
@@ -103,7 +103,7 @@ Ok, now we know how to declare "modules", we can start with the real fun stuff!
 
 The first thing we want to do is to display things, for now we won't worry about changing stuff, that will come later. We'll focus on establishing the guidelines for rendering components.
 
-Since we want to mimic the react hooks, we'll just define our functions as such, just that we don't have the markup thing that will be compiled into react createElement calls. Instead, we'll just return a jQuery element.
+Since we want to mimic the React hooks, we'll just define our functions as such, except that we don't have the markup thing that will be compiled into react createElement calls. Instead, we'll just return a jQuery element.
 
 ```javascript
 // Button.js 
@@ -182,7 +182,6 @@ Our index.html should look like this:
 <head>
     <meta charset="UTF-8">
     <title>Componentized JQuery</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 </head>
 <body>
 
@@ -266,7 +265,7 @@ In order to manage state, the best option I know so far is using classes. For th
 })(jQuery, window);
 ```
 
-Ok, now we have a skeleton of the state management system. The way it will work will be as follows:
+Ok, now we have a skeleton of the state management system. The way it works will be as follows:
 
 1. Transform your component into a stateful one by calling `withState`.
 2. Import your component.
@@ -277,7 +276,7 @@ The above list might look confusing at first, but it will be clearer once we imp
 
 ### 3.2 Use.state 
 
-The first thing we would like to mimic is the React's `useState` hook. Just to give you an idea, this is what a component using it would typically look like in React:
+The first thing we'd like to mimic is the React's `useState` hook. Just to give you an idea, this is what a component using it would typically look like in React:
 
 ```jsx
 // Our Counter component if made in React:
@@ -298,7 +297,7 @@ There are two things that will differ in our experiment from React, and both are
 
 The first thing different from react will be the `useState` function. In React, that call will be transformed to something like `__currentContext__.useState(0);`. But since we don't have such a tool, we'll need to find another way, in this case, we'll just receive the context as an object in our component. Don't worry about the change in the function's signature, because it won't be called directly by the user, but by the `StatefulComponent` class.
 
-The second thing, is obviously the fact that we won't have the fancy jsx feature, so, we'll be returning jQuery objects instead, as explained in section 2.
+The second thing is, obviously, the fact that we won't have the fancy jsx feature, so, we'll be returning jQuery objects instead, as explained in section 2.
 
 So, this is what our version of Counter will look like:
 
@@ -326,7 +325,7 @@ As you can see, they look very similar (except for the two differences stated ab
 
 #### 3.2.1 Implementation Time!
 
-We know what we want, it's time to implement it. We will need to deal with three moments:
+We know what we want, it's time to implement it. We'll need to deal with these three lifecycle events:
 
 1. **The first call:** in this part we will initialize the state for the first time and provide the underlying component with the tools to notify of a state change. This happens when instantiating the `StatefulComponent` object.
 2. **Handle the state change:** In this case we update the state and schedule a re-render. This happens whenever the provided setXXX state gets invoked.
@@ -400,7 +399,7 @@ Here's the implementation:
 })(jQuery, window);
 ```
 
-Wit this implementation, you can create a component which can hold a state, actually, multiple state values, just as in actual react:
+With this implementation, you can create a component which can hold a state, actually, multiple state values, just as in actual react:
 
 ```javascript
 // Counter.js 
@@ -432,7 +431,7 @@ This `use.state` implementation has some rules similar to React's `useState` to 
 1. The `use.state` calls should be as close to the function's beginning as possible.
 2. Do not put `use.state` calls under conditions or loops.
 
-> Curiously enough, you can skip rule number 2. But **only** if it's under a loop on a collection that will NEVER change, though, for the sake of clarity, just don't. 
+> Curiously enough, you can skip rule number 2. But **only** if it's under a loop on a collection that will NEVER change, though, for the sake of clarity, just DON'T. 
 
 ### 3.3 Use.val
 
@@ -595,7 +594,7 @@ function Counter() {
 }
 ``` 
 
-UseReducer is not that different from useState, is just a variant to deal with complex objects instead of (ideally) simple scalar values.
+UseReducer is not that different from useState, just a variant to deal with complex objects instead of (ideally) simple scalar values.
 
 #### 3.4.1 Implementation time!
 
@@ -615,6 +614,7 @@ Actually, the implementation is quite simpler than that of use.state:
             init: (initial) => {
                 if (this.isNew) { //<-- We only initialize the state during the first render.
                     this.data = initial;
+                    this.isNew = false;
                 }
             }
         };
@@ -810,6 +810,7 @@ Registering effects is quite simple, most of the magic happens on rendering.
             init: (initial) => {
                 if (this.isNew) {
                     this.data = initial;
+                    this.isNew = false;
                 }
             }
         };
@@ -889,7 +890,7 @@ Registering effects is quite simple, most of the magic happens on rendering.
                 if (!hasDependencies || onceEffect || dependencyChanged) {
                     effect.action();
                 }
-            }); //<-- For each registered effect, check if it complies with any of the execution rules, and executed if that's the case.
+            }); //<-- For each registered effect, check if it complies with any of the execution rules, and execute if that's the case.
 
            changedIndexes = []; //<-- Cleanup the changed indexes.
 
@@ -946,6 +947,7 @@ The challenging part here is locating the previously existing element of step 2.
             init: (initial) => {
                 if (this.isNew) {
                     this.data = initial;
+                    this.isNew = false;
                 }
             }
         };
