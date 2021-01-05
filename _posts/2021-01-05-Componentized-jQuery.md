@@ -5,11 +5,7 @@ date:   2021-01-05
 categories: Blog, JavaScript, jQuery, React
 ---
 
-## What is this?
-
-Well, working with jQuery solely can be very, very messy, the code can be quite difficult to follow, specially when it grows a lot.
-
-What I'm going to expose here is a series of practices and, some code that will allow you to emulate React hooks workflow without requiring any library other than jQuery.
+Working with jQuery solely can be very, very messy, the code can be quite difficult to follow, specially when it grows a lot. What I'm going to expose here is a series of practices and, some code that will allow you to emulate React hooks workflow without requiring any library other than jQuery.
 
 > **Important Notice:** This is not IE11 friendly at all, it uses lots of modern JavaScript! 
 
