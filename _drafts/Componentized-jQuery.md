@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "COMPONENTIZED JQUERY"
-date:   2020-12-15
+date:   2021-01-05
 categories: Blog, JavaScript, jQuery, React
 ---
 
@@ -15,15 +15,13 @@ What I'm going to expose here is a series of practices and, some code that will 
 
 ## But, why?
 
-For the same reason Doom runs on pregnancy tests, because we can! Also, because I hope someone finds this useful, specially if you're trapped/attached to jQuery.
+For the same reason Doom runs on pregnancy tests, because we can! Also, because I hope someone finds this useful, specially if trapped/attached to jQuery.
 
 ## Let's get started
 
-Let's create our componentized jQuery thing. To do that, we'll need to follow the next 4 steps. For this experiment all we need is jQuery and Bootstrap (bootstrap is not mandatory, is just pretty useful).
+Let's create our componentized jQuery thing.
 
-> If you just want to read the whole code and see it in action, you can just go to this jsFiddle: https://jsfiddle.net/jeyssonguevara/8bxeoua7/21/
-
-## Setup the page
+> If you just want to read the whole code and see it in action, you can just go to this jsFiddle: https://jsfiddle.net/jeyssonguevara/8bxeoua7/23/
 
 The first thing we want to do is create a simple html file with the basic stuff:
 
@@ -33,7 +31,6 @@ The first thing we want to do is create a simple html file with the basic stuff:
 <head>
     <meta charset="UTF-8">
     <title>Componentized JQuery</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 </head>
 <body>
 
@@ -44,13 +41,13 @@ The first thing we want to do is create a simple html file with the basic stuff:
 </html>
 ```
 
-There we just load Bootstrap and jQuery, that's all the external stuff we need. Also, notice the `<div id="app"></div>` element which is all the markup we need to mount our app.
+There we just load jQuery, that's all the external stuff we need. Also, notice the `<div id="app"></div>` element which is all the markup we need to mount our app.
+
+Then, we'll need to follow the these 4 steps:
 
 ## 1. No modules? Don't worry
 
-The first thing we do in any react application is to declare and load modules with the `export` and `import` keywords, but we're not bundling or compiling this or even using amd, so, what do we have left? well, the classic self-invoking functions!
-
-The convention we're going to use here, in order to keep code organized, is to create a self-invoking function to represent our modules, with just a basic convention in order to emulate the export and import logic.
+The first thing we do in any react application is to declare and load modules with the `export` and `import` keywords, but we're not bundling or compiling this or even using amd, so, what do we have left? Well, the classic self-invoking functions!
 
 ```javascript
 (function ($, exports){
@@ -739,7 +736,7 @@ In this implementation we can only have one reducer. Adding more reducers can be
 
 ### 3.5 Use.effect
 
-React's useEffect hook allows to invoke functions in specific moments of the component's lifecycle:
+React's useEffect hook allows invoking functions in specific moments of the component's lifecycle:
 
 ```js
 // On every render:
@@ -795,6 +792,8 @@ As you can notice, instead of directly sending the value, we provide a `countHan
 
 #### 3.4.1 Implementation time!
 
+Registering effects is quite simple, most of the magic happens on rendering.
+
 ```javascript
 // Cjq.js 
 (function ($, exports){
@@ -802,6 +801,8 @@ As you can notice, instead of directly sending the value, we provide a `countHan
     function StatefulComponent(props, render) {
         let state = [];
         let statesCount = 0;
+        let changedIndexes = []; //<-- An array to keep track of the states that have changed since the last render.
+        const effects = []; //<-- Our effect specs.
 
         const reducibleState = {
             isNew: true,
@@ -839,6 +840,7 @@ As you can notice, instead of directly sending the value, we provide a `countHan
                     state[currentIndex], 
                     (newValue, { shouldRender = true} = {}) => {
                         state[currentIndex] = newValue;
+                        changedIndexes.push(currentIndex); //<-- Register this state change in the changed indexes.
                         shouldRender && scheduleRender();
                     },
                     currentIndex
@@ -863,6 +865,11 @@ As you can notice, instead of directly sending the value, we provide a `countHan
                     }
                 ];
             },
+            effect: (action, dependencies) => (action, dependencies) => {
+                if (!$currentElement) {
+                  effects.push({ action, dependencies });
+                }
+            }, //<-- This is the hook, its sole purpose is to register the effects.
         };
 
         this.doRender = () => {
@@ -870,9 +877,23 @@ As you can notice, instead of directly sending the value, we provide a `countHan
 
            statesCount = 0;
 
+            const firstRender = !$currentElement; //<-- Is this the first render?
+
            const $resultingElement = render(props || {}, use);
 
-           if ($currentElement) {
+            effects.forEach(effect => {
+                const hasDependencies = effect.dependencies !== undefined; //<-- Any dependencies were provided (including an empty array)? 
+                const onceEffect = hasDependencies && firstRender && effect.dependencies.length === 0; //<-- If an empty array was given and this is the first render, then we can execute the effect.
+                const dependencyChanged = hasDependencies && effect.dependencies.some(index => changedIndexes.some(changed => changed === index)); //<-- If any of the dependencies changed, we can execute this effect.
+            
+                if (!hasDependencies || onceEffect || dependencyChanged) {
+                    effect.action();
+                }
+            }); //<-- For each registered effect, check if it complies with any of the execution rules, and executed if that's the case.
+
+           changedIndexes = []; //<-- Cleanup the changed indexes.
+
+           if (!firstRender) {
                $currentElement.replaceWith($resultingElement);
            }
 
@@ -894,3 +915,172 @@ As you can notice, instead of directly sending the value, we provide a `countHan
 
 ## 4. Child state preservation
 
+Until now, we have created a library that allows us to render UI in a React-like fashion, keeping state of that component. Yet, we have a problem: Any stateful child component will lose its state if the parent component re-renders.
+
+This limits our capability to build complex UIs. Fortunately, we can do some tricks in order to store and recover the state of a child component when the parent re-renders. Since the previous version of the dom still exists until we replace it during rendering, the trick would be to:
+
+1. On every render, store the component's state as some data-attributes in its root element.
+2. When instantiating the `StatefulComponent` class, attempt to recover the state if the element already exists.
+
+The challenging part here is locating the previously existing element of step 2. That's because, when a parent component renders, their children get instantiated as in their first render. We have no predictable way to relate a component with a DOM element automatically, you must provide a key in order to locate the existing DOM element if it exists.
+
+### 4.1 Implementation time!
+
+```javascript
+// Cjq.js 
+(function ($, exports){
+    
+    function StatefulComponent(props, render) {
+        const {key} = props; //<-- We need this key if we want to recover the state.
+
+        key === undefined && console.warn(`At [${render.name}]: Stateful components should have a 'key' prop in order to recover state if the parent component gets re-rendered.`);
+
+        let state = [];
+        let statesCount = 0;
+        let changedIndexes = [];
+        const effects = [];
+
+        const reducibleState = {
+            isNew: true,
+            data: undefined,
+            init: (initial) => {
+                if (this.isNew) {
+                    this.data = initial;
+                }
+            }
+        };
+
+        let needsReRender = false; 
+        let $currentElement = undefined;
+
+        const scheduleRender = () => {
+            if (!needsReRender) {
+                needsReRender = true;
+                setTimeout(() => this.doRender(), 0);
+            }
+        };
+
+        const tryRecoverState = () => {
+            if (!key) { //<-- No key? no way to recover the state :(
+                return;
+            }
+            const $recoveredElement = $(`[data-key="${key}"]`); //<-- Get the element by key.
+            if ($recoveredElement.length > 0) {
+                $currentElement = $recoveredElement; //<-- If the element exists, take it as the current element.
+                state = JSON.parse($currentElement.attr('data-state')); //<-- Load the state
+                reducibleState.init(JSON.parse($currentElement.attr('data-reducible-state'))); //<-- Load the reducible state (see use.reducer section)
+            }
+        }; //<-- Here we attempt to load the state from a previously existing element (if it exists).
+        
+        const saveState = () => {
+            if (key) {
+                $currentElement.attr('data-key', key);
+            }
+            return $currentElement.attr({
+                'data-state': JSON.stringify(state),
+                'data-reducible-state': JSON.stringify(reducibleState.data || {}),
+            });
+        } //<-- Here we save the state as data-attributes in JSON format.
+        
+        tryRecoverState(); //<-- The try recover state only makes sense on the "first render"
+
+        // This is the handle we send to the component in order to provide context when rendering.
+        const use = {
+            state: (initial) => { 
+                const currentIndex = statesCount; 
+
+                if (!$currentElement) {
+                    state.push(initial);
+                }
+
+                statesCount++;
+
+                return [
+                    state[currentIndex], 
+                    (newValue, { shouldRender = true} = {}) => {
+                        state[currentIndex] = newValue;
+                        changedIndexes.push(currentIndex);
+
+                         if (shouldRender) { 
+                            scheduleRender();
+                        } else {
+                            saveState(); 
+                        }
+                    },
+                    currentIndex
+                ];
+            },
+            val: (initial) => {
+                const [, setValue, valueIndex] = use.state(initial);
+                return [
+                    () => state[valueIndex],
+                    (value, {shouldRender = false} = {}) => setValue(value, {shouldRender})
+                ];
+            },
+            reducer: (reducer, initial) => {
+                reducibleState.init(initial);
+
+                return [
+                    reducibleState.data, 
+                    dispatchData => {
+                        const newData = reducer(reducibleState.data, dispatchData);
+                        reducibleState.data = newData;
+                        scheduleRender();
+                    }
+                ];
+            },
+            effect: (action, dependencies) => (action, dependencies) => {
+                if (!$currentElement) {
+                  effects.push({ action, dependencies });
+                }
+            },
+        };
+
+        this.doRender = () => {
+           needsReRender = false;
+
+           statesCount = 0;
+
+            const firstRender = !$currentElement;
+
+           const $resultingElement = render(props || {}, use);
+
+            effects.forEach(effect => {
+                const hasDependencies = effect.dependencies !== undefined; 
+                const onceEffect = hasDependencies && firstRender && effect.dependencies.length === 0;
+                const dependencyChanged = hasDependencies && effect.dependencies.some(index => changedIndexes.some(changed => changed === index));
+            
+                if (!hasDependencies || onceEffect || dependencyChanged) {
+                    effect.action();
+                }
+            });
+
+           changedIndexes = [];
+
+           if (!firstRender) {
+               $currentElement.replaceWith($resultingElement);
+           }
+
+           $currentElement = $resultingElement;
+
+           return saveState(); //<-- Whenever we do a render, we save the state.
+        }
+    }
+
+    function withState(Component){
+        
+        return function (props){
+            return new StatefulComponent(props, Component).doRender();
+        };
+    }
+    exports.withState = withState;
+})(jQuery, window);
+``` 
+
+With this implementation we can now create a hierarchy of components that will retain their state even if the parent component gets re-rendered. This at the cost of needing a key attribute.
+
+## Conclusion
+
+Working with jQuery this way is (hopefully) an interesting idea, there are plenty of subjects not considered here (performance, async methods, bundling, etc.), but it might be a valid resource for maintaining legacy projects or even the foundation for an alternative to React for people not ready to embrace it (I actually doubt they exist).
+
+As previously mentioned, you can check the full sample [here](https://jsfiddle.net/jeyssonguevara/8bxeoua7/23/).
