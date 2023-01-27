@@ -9,6 +9,8 @@ This article focuses on providing a few guidelines to use your current web-app l
 
 The main target for this article is **server side HTML output**, but, with some extensions, it could be applied to client side.
 
+> **Note:** In this article we won't implement the solution, but rather provide some theoretical guidelines on how to do so, you can look at some example implementations at the [Conclusions and Sample implementations](#conclusions-and-sample-implementations) section.
+
 ## But, why?
 
 Mostly because I'd like to demonstrate you don't need another language to do it as long as you're disciplined enough.
@@ -102,9 +104,117 @@ classDiagram
   }
 ```
 
-### The Text special element
+As you can see, the main piece is the `Element` abstract class. This one represents the entirety of the tree nodes and contains all the necessary info to produce the HTML, let's see its properties:
+
+- Tag: The element's tag name, this must comply with the HTML's standard, the library MUST validate it to avoid cross-site scripting (XSS) attacks from third party libraries.
+- Attributes: This object contains all the element's attributes (those that come after the tag e.g. `<a attribute1="" someOtherAttribute>`). The idea is that the library can accept any object in this property, that way, any current and future HTML attribute will be supported.
+- IsSelfClosed: This property indicates that this element has no children, thus, should look something like this: `<br />` or `<input type="text" />`.
+- Children: Are all the child elements, this is what makes the `Element` class represent a tree.
+
+There's a few things to notice about the class:
+
+1. All of its properties are read-only. This is to enforce the "One-way, no look back" principle, encouraging the library user to avoid dealing with state while building the tree.
+2. You cannot traverse back from children to parent, this is to help simplify HTML producer (a.k.a. renderer) design, and to keep library user from doing clever things with the tree.
+
+The target of the above constraints is to enforce the notion of the library as *just an HTML producer*, any complex logic should be dealt with before using it.
+
+All other in the diagram are just implementations of `Element`, those represent the tree types of node our library should recognize: Concrete elements (`<a>`, `<div>`, `<input>`, etc.), Text and Components.
+
+Let's see each type of node next.
 
 ### The standard elements suite (Concrete Elements)
+
+Concrete elements are expected to be read-only, non-inheritable and direct implementations of `Element`. The idea is that you create a series of `Element` sub-classes which sole purpose is to represent one specific element. 
+
+```mermaid
+---
+title: Element concrete classes
+---
+graph BT
+
+  classDef concrete fill: #f7b772
+  classDef noFill fill: none, stroke:none
+
+  Element
+  A:::concrete --> Element
+  Abbr:::concrete --> Element
+  Acronym:::concrete --> Element
+  note["..."]:::noFill
+  Ul:::concrete --> Element
+  Video:::concrete --> Element
+  Wbr:::concrete --> Element
+
+```
+
+These would become the basic building blocks of the page (alongside with the Text Element which we'll see next). Creating new elements should always be as simple as inheriting from `Element` and implementing its abstract methods.
+
+Just remember a few rules:
+
+1. They must be sealed and read-only.
+2. They must not do anything except hold the info necessary to produce an HTML element, that is, the tag, the attributes, is it self-closed, and the children (if not self-closed).
+
+Any extra capability we would like to see on an element will be handled by other objects in the library, e.g. the view logic (which is different from the business logic) will be handled by the Components, and any validation should be handled by the HTML producing system.
+
+The library should include the full set of HTML elements, this is not mandatory, but could be appreciated by its users. 
+
+Creating non-supported elements, e.g. elements introduced by new HTML standards or [HTML web components](https://developer.mozilla.org/en-US/docs/Web/Web_Components) should be pretty simple since all you need is to extend the `Element` class.
+
+The usage of these elements should be pretty straight-forward, and it is up to the library author's creativity to provide ways to make it as comfortable as possible for the user.
+
+Some possible examples:
+
+JavaScript
+
+```javascript
+a({ href: "#" })(
+  span()("Some Text")
+);
+
+// Or
+a({ href: "#" },
+  span(null, "Some Text")
+);
+
+// Or
+A.href("#")(
+  span("Some Text")
+);
+
+// Or whatever mechanism you can come up with.
+```
+
+C#
+
+```csharp
+// Assuming you're withing a method:
+
+_<A>(new Attrs{ Href="#" }, 
+  _<Span>("Some Text")
+);
+
+// Or
+new A(new Attrs{ Href="#" }, 
+  new Span(null, "Some Text")
+);
+
+// Or
+new A(attrs => {
+    attrs.Href = "#"
+  },
+  new Span("Some Text")
+);
+```
+
+There are many ways to approach elements instantiation, the important thing is that it should aim to these two items:
+
+1. Be consistent, the ways to instantiate an element should be pretty limited, 1 if possible.
+2. It must try to mimic HTML look as much as possible, e.g. by using Generics as in C#, or currying as in JavaScript.
+
+Now, let's see the next important part of the library, the Text Element.
+
+### The Text special element
+
+
 
 ### Components
 
@@ -121,3 +231,6 @@ classDiagram
 #### Class names
 
 #### Style builder
+
+## Conclusions and Sample implementations
+
